@@ -10,8 +10,12 @@ struct PaneToolbar: View {
     @Binding var backlinksOpen: Bool
     @Binding var editorMode: String  // "view" | "edit" | "preview"
     @Binding var isFullscreen: Bool
+    @Binding var autoScrollActive: Bool
+    @Binding var autoScrollInterval: Double
+    @Binding var autoScrollPercent: Double
     let onRefresh: () -> Void
     let onSave: () -> Void
+    let onAutoScrollToggle: () -> Void
 
     private var tab: FileTab? {
         pane == .primary ? appState.primaryTab : appState.secondaryTab
@@ -61,6 +65,16 @@ struct PaneToolbar: View {
             }
             .background(Color.secondary.opacity(0.08))
             .clipShape(RoundedRectangle(cornerRadius: 6))
+
+            // Auto-scroll toggle (only in view or preview modes)
+            if editorMode == "view" || editorMode == "preview" {
+                AutoScrollButton(
+                    active: $autoScrollActive,
+                    intervalSeconds: $autoScrollInterval,
+                    scrollPercent: $autoScrollPercent,
+                    onToggle: onAutoScrollToggle
+                )
+            }
 
             // Actions menu
             Menu {
