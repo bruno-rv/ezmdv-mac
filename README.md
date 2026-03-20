@@ -60,6 +60,14 @@
 
 ---
 
+## Download
+
+**[Download ezmdv v1.0.0 (DMG)](https://github.com/bruno-rv/ezmdv-mac/releases/download/v1.0.0/ezmdv-1.0.0.dmg)** — open the DMG and drag ezmdv to your Applications folder.
+
+Or build from source below.
+
+---
+
 ## Build & Install
 
 ### Prerequisites
