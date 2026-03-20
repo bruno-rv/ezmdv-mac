@@ -165,6 +165,12 @@ The app uses a **hybrid rendering** approach: SwiftUI provides the native shell 
 
 ---
 
+## Contact
+
+Questions, suggestions, or feedback? Reach out at **brunorv@hotmail.com**.
+
+---
+
 ## License
 
 MIT License — see [LICENSE](LICENSE) for details.
