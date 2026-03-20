@@ -46,6 +46,20 @@
 
 ---
 
+## Screenshots
+
+<p align="center">
+  <img src="assets/screenshot-split.png" width="720" alt="Split view — editor and rendered preview side by side">
+  <br><em>Split view with markdown editor and live preview</em>
+</p>
+
+<p align="center">
+  <img src="assets/screenshot-graph.png" width="720" alt="Knowledge graph with force-directed layout">
+  <br><em>Interactive knowledge graph with display engine controls</em>
+</p>
+
+---
+
 ## Build & Install
 
 ### Prerequisites
