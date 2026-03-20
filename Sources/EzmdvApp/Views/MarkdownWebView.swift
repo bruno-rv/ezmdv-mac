@@ -5,8 +5,12 @@ struct MarkdownWebView: NSViewRepresentable {
     let filePath: String
     var zoom: Double = 1.0
     var editorMode: String = "view"  // "view" | "edit" | "preview"
+    var autoScrollActive: Bool = false
+    var autoScrollInterval: Double = 5
+    var autoScrollPercent: Double = 10
     var onHeadingsExtracted: (([TOCHeading]) -> Void)? = nil
     var onContentChanged: ((String) -> Void)? = nil
+    var onAutoScrollStopped: (() -> Void)? = nil
     @EnvironmentObject var appState: AppState
 
     func makeNSView(context: Context) -> WKWebView {
@@ -15,6 +19,7 @@ struct MarkdownWebView: NSViewRepresentable {
         userController.add(context.coordinator, name: "editHandler")
         userController.add(context.coordinator, name: "editorHandler")
         userController.add(context.coordinator, name: "readyHandler")
+        userController.add(context.coordinator, name: "autoScrollHandler")
 
         // Inject editor.js via WKUserScript (avoids </script> breakage from inlining)
         if let editorURL = Bundle.module.url(forResource: "editor", withExtension: "js"),
@@ -43,6 +48,7 @@ struct MarkdownWebView: NSViewRepresentable {
         context.coordinator.pendingMode = editorMode
         context.coordinator.onHeadingsExtracted = onHeadingsExtracted
         context.coordinator.onContentChanged = onContentChanged
+        context.coordinator.onAutoScrollStopped = onAutoScrollStopped
 
         // Find the project for this file to pass file list for wiki-link resolution
         if let tab = appState.tabs.first(where: { $0.filePath == filePath }),
@@ -66,6 +72,7 @@ struct MarkdownWebView: NSViewRepresentable {
         let content = loadMarkdown()
         context.coordinator.onHeadingsExtracted = onHeadingsExtracted
         context.coordinator.onContentChanged = onContentChanged
+        context.coordinator.onAutoScrollStopped = onAutoScrollStopped
         context.coordinator.filePath = filePath
 
         if context.coordinator.jsReady {
@@ -75,7 +82,25 @@ struct MarkdownWebView: NSViewRepresentable {
             // Apply mode change
             if context.coordinator.lastMode != editorMode {
                 context.coordinator.lastMode = editorMode
+                // Stop auto-scroll when switching to edit mode
+                if editorMode == "edit" {
+                    webView.evaluateJavaScript("stopAutoScroll()", completionHandler: nil)
+                }
                 webView.evaluateJavaScript("setMode('\(editorMode)')", completionHandler: nil)
+            }
+
+            // Apply auto-scroll config and state
+            webView.evaluateJavaScript(
+                "setAutoScrollConfig(\(autoScrollInterval), \(autoScrollPercent))",
+                completionHandler: nil
+            )
+            if context.coordinator.lastAutoScrollActive != autoScrollActive {
+                context.coordinator.lastAutoScrollActive = autoScrollActive
+                if autoScrollActive {
+                    webView.evaluateJavaScript("toggleAutoScroll()", completionHandler: nil)
+                } else {
+                    webView.evaluateJavaScript("stopAutoScroll()", completionHandler: nil)
+                }
             }
 
             // Inject content (only in view mode — in edit/preview, editor owns content)
@@ -128,9 +153,11 @@ struct MarkdownWebView: NSViewRepresentable {
         var pendingProjectFiles: [[String: String]]?
         var lastInjected: String?
         var lastMode: String = "view"
+        var lastAutoScrollActive: Bool = false
         var jsReady = false
         var onHeadingsExtracted: (([TOCHeading]) -> Void)?
         var onContentChanged: ((String) -> Void)?
+        var onAutoScrollStopped: (() -> Void)?
 
         private func onJSReady() {
             jsReady = true
@@ -209,6 +236,13 @@ struct MarkdownWebView: NSViewRepresentable {
                     return TOCHeading(level: level, text: text, anchor: anchor)
                 }
                 DispatchQueue.main.async { self.onHeadingsExtracted?(headings) }
+            }
+
+            // Auto-scroll stopped (reached bottom)
+            if message.name == "autoScrollHandler",
+               let info = message.body as? [String: Any],
+               let active = info["active"] as? Bool, !active {
+                DispatchQueue.main.async { self.onAutoScrollStopped?() }
             }
 
             // Content from editor (both legacy editHandler and new editorHandler)

@@ -334,6 +334,143 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e)
   }
 });
 
+// --- Auto-scroll (teleprompter) ---
+const autoScroll = {
+  active: false,
+  intervalSeconds: 5,
+  scrollPercent: 10,
+  _userPaused: false,
+  _phase: 'waiting',       // 'waiting' | 'animating'
+  _waitStart: null,
+  _animStart: null,
+  _animStartScroll: 0,
+  _animTargetScroll: 0,
+  _raf: null,
+  _resumeTimer: null,
+  ANIM_DURATION: 300,
+
+  _easeOutCubic(t) { return 1 - (1 - t) ** 3; },
+
+  _getContainer() {
+    if (currentMode === 'view') return document.getElementById('view-container');
+    if (currentMode === 'preview') return document.getElementById('render-pane');
+    return null;
+  },
+
+  toggle() {
+    if (this.active) { this.stop(); return; }
+    const el = this._getContainer();
+    if (!el || el.scrollHeight <= el.clientHeight) return;
+    this.active = true;
+    this._userPaused = false;
+    this._phase = 'animating';
+    this._animStart = null;
+    this._waitStart = null;
+    this._attachListeners();
+    this._raf = requestAnimationFrame((t) => this._tick(t));
+  },
+
+  stop() {
+    this.active = false;
+    this._userPaused = false;
+    this._phase = 'waiting';
+    this._waitStart = null;
+    this._animStart = null;
+    if (this._raf) { cancelAnimationFrame(this._raf); this._raf = null; }
+    if (this._resumeTimer) { clearTimeout(this._resumeTimer); this._resumeTimer = null; }
+    this._detachListeners();
+  },
+
+  setConfig(intervalSeconds, scrollPercent) {
+    this.intervalSeconds = intervalSeconds;
+    this.scrollPercent = scrollPercent;
+  },
+
+  _startAnimation(el, now) {
+    const stepSize = el.clientHeight * (this.scrollPercent / 100);
+    this._phase = 'animating';
+    this._animStart = now;
+    this._animStartScroll = el.scrollTop;
+    this._animTargetScroll = el.scrollTop + stepSize;
+  },
+
+  _tick(now) {
+    const el = this._getContainer();
+    if (!el) { this._raf = requestAnimationFrame((t) => this._tick(t)); return; }
+
+    if (this._userPaused) {
+      this._waitStart = null;
+      this._phase = 'waiting';
+      this._raf = requestAnimationFrame((t) => this._tick(t));
+      return;
+    }
+
+    if (this._phase === 'animating') {
+      if (this._animStart === null) {
+        this._startAnimation(el, now);
+        this._raf = requestAnimationFrame((t) => this._tick(t));
+        return;
+      }
+      const elapsed = now - this._animStart;
+      const t = Math.min(elapsed / this.ANIM_DURATION, 1);
+      const eased = this._easeOutCubic(t);
+      el.scrollTop = this._animStartScroll + (this._animTargetScroll - this._animStartScroll) * eased;
+
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 1) {
+        this.stop();
+        if (window.webkit?.messageHandlers?.autoScrollHandler) {
+          window.webkit.messageHandlers.autoScrollHandler.postMessage({ active: false });
+        }
+        return;
+      }
+      if (t >= 1) { this._phase = 'waiting'; this._waitStart = now; }
+      this._raf = requestAnimationFrame((t) => this._tick(t));
+      return;
+    }
+
+    // Waiting phase
+    if (this._waitStart === null) this._waitStart = now;
+    if (now - this._waitStart >= this.intervalSeconds * 1000) {
+      this._startAnimation(el, now);
+    }
+    this._raf = requestAnimationFrame((t) => this._tick(t));
+  },
+
+  _onUserScroll() {
+    if (!this.active) return;
+    this._userPaused = true;
+    if (this._resumeTimer) clearTimeout(this._resumeTimer);
+    this._resumeTimer = setTimeout(() => {
+      this._userPaused = false;
+      this._waitStart = null;
+    }, 2000);
+  },
+
+  _boundOnUserScroll: null,
+  _currentListenerEl: null,
+
+  _attachListeners() {
+    const el = this._getContainer();
+    if (!el) return;
+    this._boundOnUserScroll = () => this._onUserScroll();
+    this._currentListenerEl = el;
+    el.addEventListener('wheel', this._boundOnUserScroll, { passive: true });
+  },
+
+  _detachListeners() {
+    if (this._currentListenerEl && this._boundOnUserScroll) {
+      this._currentListenerEl.removeEventListener('wheel', this._boundOnUserScroll);
+    }
+    this._boundOnUserScroll = null;
+    this._currentListenerEl = null;
+  }
+};
+
+// Called from Swift
+function toggleAutoScroll() { autoScroll.toggle(); return autoScroll.active; }
+function stopAutoScroll() { autoScroll.stop(); }
+function setAutoScrollConfig(interval, percent) { autoScroll.setConfig(interval, percent); }
+
 // --- Signal ready to Swift ---
 window.addEventListener('load', function() {
   if (window.webkit?.messageHandlers?.readyHandler) {
