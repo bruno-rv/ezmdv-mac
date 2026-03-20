@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Highlight.js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"
+      media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css"
+      media="(prefers-color-scheme: light)">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<!-- KaTeX -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/contrib/auto-render.min.js"></script>
+<!-- Marked.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.7/marked.min.js"></script>
+<!-- Mermaid -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js"></script>
+<style>
+/* === Inlined markdown.css (loadHTMLString can't load local CSS files) === */
+:root {
+  --bg: #ffffff; --fg: #1a1a2e; --fg-secondary: #555;
+  --border: #e5e7eb; --code-bg: #f6f8fa;
+  --blockquote-border: #d0d7de; --link: #0969da;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117; --fg: #e6edf3; --fg-secondary: #8b949e;
+    --border: #30363d; --code-bg: #161b22;
+    --blockquote-border: #3b434b; --link: #58a6ff;
+  }
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; height: 100%;
+  background: var(--bg); color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 15px; line-height: 1.7; overflow: hidden;
+}
+.markdown-body { max-width: 820px; margin: 0 auto; padding: 32px 40px 80px; }
+.markdown-body h1, .markdown-body h2, .markdown-body h3,
+.markdown-body h4, .markdown-body h5, .markdown-body h6 {
+  margin-top: 1.5em; margin-bottom: 0.5em; font-weight: 600; line-height: 1.25;
+}
+.markdown-body h1 { font-size: 2em; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
+.markdown-body h2 { font-size: 1.5em; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; }
+.markdown-body h3 { font-size: 1.25em; }
+.markdown-body p { margin: 0.8em 0; }
+.markdown-body a { color: var(--link); text-decoration: none; }
+.markdown-body a:hover { text-decoration: underline; }
+.markdown-body img { max-width: 100%; border-radius: 6px; }
+.markdown-body blockquote {
+  margin: 1em 0; padding: 0.5em 1em;
+  border-left: 4px solid var(--blockquote-border);
+  color: var(--fg-secondary); background: var(--code-bg); border-radius: 0 6px 6px 0;
+}
+.markdown-body pre {
+  background: var(--code-bg); border-radius: 8px; padding: 16px;
+  overflow-x: auto; font-size: 13px; border: 1px solid var(--border);
+}
+.markdown-body code { font-family: "SF Mono", "Fira Code", Menlo, monospace; font-size: 0.88em; }
+.markdown-body :not(pre) > code {
+  background: var(--code-bg); padding: 0.2em 0.4em; border-radius: 4px; border: 1px solid var(--border);
+}
+.markdown-body table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+.markdown-body th, .markdown-body td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+.markdown-body th { background: var(--code-bg); font-weight: 600; }
+.markdown-body tr:nth-child(even) { background: var(--code-bg); }
+.markdown-body hr { border: none; border-top: 1px solid var(--border); margin: 2em 0; }
+.markdown-body ul, .markdown-body ol { padding-left: 2em; }
+.markdown-body li { margin: 0.3em 0; }
+.markdown-body input[type="checkbox"] { margin-right: 0.5em; accent-color: var(--link); }
+.mermaid { margin: 1.5em 0; text-align: center; }
+.katex-display { margin: 1em 0; overflow-x: auto; }
+
+/* Wiki-links */
+a.wiki-link {
+  color: var(--link); text-decoration: none;
+  border-bottom: 1px dashed var(--link); padding-bottom: 1px;
+}
+a.wiki-link:hover { border-bottom-style: solid; }
+a.wiki-link.unresolved { color: var(--fg-secondary); border-bottom-color: var(--fg-secondary); opacity: 0.7; }
+
+/* === Layout containers === */
+#view-container { display: none; height: 100%; overflow-y: auto; }
+#view-container.active { display: block; }
+#view-container .markdown-body { padding: 24px 32px; }
+
+#edit-container { display: none; height: 100%; overflow: hidden; }
+#edit-container.active { display: flex; flex-direction: column; }
+#edit-container .cm-editor { flex: 1; }
+#preview-container { display: none; height: 100%; }
+#preview-container.active { display: grid; grid-template-columns: 1fr 1fr; }
+#editor-pane { overflow: hidden; display: flex; flex-direction: column; }
+#editor-pane .cm-editor { flex: 1; }
+#render-pane { overflow-y: auto; border-left: 1px solid var(--border); }
+#render-pane .markdown-body { padding: 24px 32px; }
+</style>
+</head>
+<body>
+<!-- Three containers — only one active at a time -->
+<div id="view-container" class="active">
+  <article id="content" class="markdown-body"></article>
+</div>
+
+<div id="edit-container">
+  <!-- CodeMirror mounts here -->
+</div>
+
+<div id="preview-container">
+  <div id="editor-pane"><!-- CodeMirror mounts here --></div>
+  <div id="render-pane"><article class="markdown-body"></article></div>
+</div>
+
+<!-- CodeMirror bundle injected via WKUserScript by Swift -->
+<script>
+// --- Global state ---
+let rawMarkdown = '';
+let currentMode = 'view';
+let editorManager = null;
+let projectFiles = []; // [{name, path, relativePath}] — set from Swift
+
+// --- Wiki-link transformation ---
+// Converts [[target]] and [[target|display]] to clickable links before marked processes them
+function transformWikiLinks(md) {
+  return md.replace(/\[\[([^\[\]]+)\]\]/g, function(match, inner) {
+    const parts = inner.split('|');
+    const target = parts[0].trim();
+    const display = parts.length > 1 ? parts[1].trim() : target;
+    const encoded = encodeURIComponent(target);
+    const resolved = resolveWikiTarget(target);
+    const cls = resolved ? 'wiki-link' : 'wiki-link unresolved';
+    return '<a class="' + cls + '" href="wiki://' + encoded + '">' + display + '</a>';
+  });
+}
+
+// Resolve a wiki target to a file path (client-side best-effort)
+function resolveWikiTarget(target) {
+  if (projectFiles.length === 0) return null;
+  const targetLower = target.split('#')[0].toLowerCase(); // strip heading anchor
+  const withExt = targetLower.endsWith('.md') ? targetLower : targetLower + '.md';
+  // Exact relative path match
+  let match = projectFiles.find(f => f.relativePath.toLowerCase() === withExt);
+  if (match) return match;
+  // Basename match
+  const matches = projectFiles.filter(f => f.name.toLowerCase() === withExt || f.name.toLowerCase() === targetLower);
+  if (matches.length === 1) return matches[0];
+  return null;
+}
+
+// Called from Swift to set project files for wiki-link resolution
+function setProjectFiles(files) {
+  projectFiles = files;
+  // Also pass to editor manager for autocomplete
+  if (window._updateEditorFiles) window._updateEditorFiles(files);
+}
+
+// --- Configure marked (with safety check) ---
+if (typeof marked !== 'undefined') {
+  marked.setOptions({ gfm: true, breaks: false });
+  const renderer = new marked.Renderer();
+  renderer.code = function({ text, lang }) {
+    if (lang === 'mermaid') {
+      return '<div class="mermaid">' + text + '</div>';
+    }
+    const highlighted = (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang))
+      ? hljs.highlight(text, { language: lang }).value
+      : (typeof hljs !== 'undefined' ? hljs.highlightAuto(text).value : text);
+    return '<pre><code class="hljs language-' + (lang || '') + '">' + highlighted + '</code></pre>';
+  };
+  marked.use({ renderer });
+}
+
+if (typeof mermaid !== 'undefined') {
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default',
+    securityLevel: 'loose',
+  });
+}
+
+// --- Render markdown to an element ---
+async function renderMarkdownToEl(md, el) {
+  try {
+    if (typeof marked !== 'undefined') {
+      // Transform wiki-links before marked processes the markdown
+      const transformed = transformWikiLinks(md);
+      el.innerHTML = marked.parse(transformed);
+    } else {
+      // Fallback: show raw text if marked.js failed to load
+      el.innerText = md;
+    }
+
+    // Mermaid
+    if (typeof mermaid !== 'undefined') {
+      const mermaidEls = el.querySelectorAll('.mermaid');
+      if (mermaidEls.length > 0) {
+        try { await mermaid.run({ nodes: mermaidEls }); }
+        catch(e) { console.error('Mermaid error:', e); }
+      }
+    }
+
+    // KaTeX
+    if (typeof renderMathInElement === 'function') {
+      renderMathInElement(el, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$', right: '$', display: false },
+          { left: '\\[', right: '\\]', display: true },
+          { left: '\\(', right: '\\)', display: false },
+        ],
+        throwOnError: false,
+      });
+    }
+
+    // Highlight code blocks
+    if (typeof hljs !== 'undefined') {
+      el.querySelectorAll('pre code:not(.hljs)').forEach(b => hljs.highlightElement(b));
+    }
+  } catch(e) {
+    console.error('renderMarkdownToEl error:', e);
+    el.innerText = md; // fallback to raw text
+  }
+}
+
+// --- Main render (called from Swift for view mode) ---
+async function renderMarkdown(md) {
+  rawMarkdown = md;
+  const el = document.getElementById('content');
+  await renderMarkdownToEl(md, el);
+  extractTOC();
+
+  // If in preview mode, also update the preview pane
+  if (currentMode === 'preview') {
+    const previewEl = document.querySelector('#render-pane .markdown-body');
+    if (previewEl) await renderMarkdownToEl(md, previewEl);
+  }
+
+  // If editor is open, sync content
+  if (editorManager && (currentMode === 'edit' || currentMode === 'preview')) {
+    editorManager.setContent(md);
+  }
+}
+
+// --- TOC extraction ---
+function extractTOC() {
+  const headings = [];
+  document.querySelectorAll('#content h1, #content h2, #content h3, #content h4, #content h5, #content h6')
+    .forEach((h, i) => {
+      const anchor = 'heading-' + i;
+      h.id = anchor;
+      headings.push({ level: parseInt(h.tagName.charAt(1)), text: h.textContent, anchor: anchor });
+    });
+  if (window.webkit?.messageHandlers?.tocHandler) {
+    window.webkit.messageHandlers.tocHandler.postMessage(headings);
+  }
+}
+
+// --- Scroll to heading ---
+function scrollToHeading(anchor) {
+  const el = document.getElementById(anchor);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// --- Mode switching (called from Swift) ---
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('view-container').classList.toggle('active', mode === 'view');
+  document.getElementById('edit-container').classList.toggle('active', mode === 'edit');
+  document.getElementById('preview-container').classList.toggle('active', mode === 'preview');
+
+  if (mode === 'edit') {
+    if (editorManager) editorManager.destroy();
+    if (!window.EditorManager) {
+      console.warn('EditorManager not loaded yet');
+      return;
+    }
+    editorManager = new window.EditorManager();
+    const container = document.getElementById('edit-container');
+    container.innerHTML = '';
+    editorManager.init(container, rawMarkdown);
+    editorManager.focus();
+  } else if (mode === 'preview') {
+    if (editorManager) editorManager.destroy();
+    if (!window.EditorManager) {
+      console.warn('EditorManager not loaded yet');
+      return;
+    }
+    editorManager = new window.EditorManager();
+    const editorPane = document.getElementById('editor-pane');
+    editorPane.innerHTML = '';
+    editorManager.init(editorPane, rawMarkdown);
+    editorManager.focus();
+    const previewEl = document.querySelector('#render-pane .markdown-body');
+    if (previewEl) renderMarkdownToEl(rawMarkdown, previewEl);
+  } else {
+    // View mode — destroy editor, re-render view
+    if (editorManager) {
+      rawMarkdown = editorManager.getContent();
+      editorManager.destroy();
+      editorManager = null;
+    }
+    renderMarkdownToEl(rawMarkdown, document.getElementById('content'));
+    extractTOC();
+  }
+}
+
+// --- Get current editor content (called from Swift) ---
+function getEditorContent() {
+  if (editorManager) return editorManager.getContent();
+  return rawMarkdown;
+}
+
+// --- Legacy edit mode functions (kept for compatibility) ---
+function enterEditMode() { setMode('edit'); }
+function exitEditMode() {
+  if (editorManager) {
+    const content = editorManager.getContent();
+    if (content !== rawMarkdown) {
+      rawMarkdown = content;
+      if (window.webkit?.messageHandlers?.editHandler) {
+        window.webkit.messageHandlers.editHandler.postMessage(content);
+      }
+    }
+  }
+  setMode('view');
+}
+
+// --- Theme change listener ---
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+  if (typeof mermaid !== 'undefined') {
+    mermaid.initialize({ theme: e.matches ? 'dark' : 'default' });
+  }
+});
+
+// --- Signal ready to Swift ---
+window.addEventListener('load', function() {
+  if (window.webkit?.messageHandlers?.readyHandler) {
+    window.webkit.messageHandlers.readyHandler.postMessage('ready');
+  }
+});
+</script>
+</body>
+</html>
