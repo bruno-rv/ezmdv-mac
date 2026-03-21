@@ -32,4 +32,25 @@ struct MarkdownFile: Identifiable, Codable, Hashable {
         self.isDirectory = isDirectory
         self.children = children
     }
+
+    /// Recursively flattens a file tree into a flat array of non-directory files.
+    static func flatten(_ files: [MarkdownFile]?) -> [MarkdownFile] {
+        guard let files = files else { return [] }
+        var result: [MarkdownFile] = []
+        for file in files {
+            if file.isDirectory {
+                result.append(contentsOf: flatten(file.children))
+            } else {
+                result.append(file)
+            }
+        }
+        return result
+    }
+
+    /// Returns flattened files as dictionaries for JS interop.
+    static func flattenForJS(_ files: [MarkdownFile]?) -> [[String: String]] {
+        flatten(files).map { file in
+            ["name": file.name, "path": file.path, "relativePath": file.relativePath]
+        }
+    }
 }
