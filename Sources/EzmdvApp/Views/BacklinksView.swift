@@ -87,31 +87,24 @@ struct BacklinksView: View {
         let targetBasename = (targetName as NSString).deletingPathExtension.lowercased()
 
         for project in appState.projects {
-            guard let files = project.files else { continue }
-            let flat = flattenFiles(files)
+            let flat = MarkdownFile.flatten(project.files)
             for file in flat {
                 guard file.path != filePath else { continue }
                 guard let content = try? String(contentsOfFile: file.path, encoding: .utf8) else { continue }
 
-                // Find all [[...]] references
-                let pattern = "\\[\\[([^\\[\\]]+)\\]\\]"
-                guard let regex = try? NSRegularExpression(pattern: pattern) else { continue }
                 let nsContent = content as NSString
-                let matches = regex.matches(in: content, range: NSRange(location: 0, length: nsContent.length))
+                let links = WikiLinkResolver.findLinks(in: content)
 
-                for match in matches {
-                    guard match.numberOfRanges >= 2 else { continue }
-                    let inner = nsContent.substring(with: match.range(at: 1))
+                for (fullRange, inner) in links {
                     let target = inner.split(separator: "|").first.map(String.init) ?? inner
                     let targetTrimmed = target.trimmingCharacters(in: .whitespaces).lowercased()
                     let targetNoExt = targetTrimmed.hasSuffix(".md")
                         ? String(targetTrimmed.dropLast(3)) : targetTrimmed
 
                     if targetNoExt == targetBasename || targetTrimmed == targetName.lowercased() {
-                        // Extract context (±40 chars around the match)
-                        let loc = match.range.location
+                        let loc = fullRange.location
                         let ctxStart = max(0, loc - 40)
-                        let ctxEnd = min(nsContent.length, loc + match.range.length + 40)
+                        let ctxEnd = min(nsContent.length, loc + fullRange.length + 40)
                         let ctx = nsContent.substring(with: NSRange(location: ctxStart, length: ctxEnd - ctxStart))
                             .replacingOccurrences(of: "\n", with: " ")
 
@@ -119,20 +112,11 @@ struct BacklinksView: View {
                             sourceFile: file, projectId: project.id,
                             linkText: inner, context: "…\(ctx)…"
                         ))
-                        break // one backlink per file is enough
+                        break
                     }
                 }
             }
         }
         return results
-    }
-
-    private func flattenFiles(_ files: [MarkdownFile]) -> [MarkdownFile] {
-        var result: [MarkdownFile] = []
-        for f in files {
-            if f.isDirectory { result.append(contentsOf: flattenFiles(f.children ?? [])) }
-            else { result.append(f) }
-        }
-        return result
     }
 }

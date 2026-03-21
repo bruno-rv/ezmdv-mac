@@ -60,7 +60,7 @@ struct GraphView: View {
             return GraphData(nodes: [], edges: [])
         }
 
-        let flat = flattenFiles(files)
+        let flat = MarkdownFile.flatten(files)
         var nodes: [GraphNode] = []
         var edges: [GraphEdge] = []
         var nodeMap: [String: Int] = [:]
@@ -73,19 +73,15 @@ struct GraphView: View {
             nodeMap[(file.name as NSString).deletingPathExtension.lowercased()] = i
         }
 
-        let pattern = "\\[\\[([^\\[\\]]+)\\]\\]"
-        guard let regex = try? NSRegularExpression(pattern: pattern) else {
+        guard let regex = WikiLinkResolver.regex else {
             return GraphData(nodes: nodes, edges: edges)
         }
 
         for (sourceIdx, file) in flat.enumerated() {
             guard let content = try? String(contentsOfFile: file.path, encoding: .utf8) else { continue }
-            let nsContent = content as NSString
-            let matches = regex.matches(in: content, range: NSRange(location: 0, length: nsContent.length))
+            let links = WikiLinkResolver.findLinks(in: content)
 
-            for match in matches {
-                guard match.numberOfRanges >= 2 else { continue }
-                let inner = nsContent.substring(with: match.range(at: 1))
+            for (_, inner) in links {
                 let target = inner.split(separator: "|").first.map(String.init) ?? inner
                 let targetCleaned = target.trimmingCharacters(in: .whitespaces).lowercased()
                 let targetKey = targetCleaned.split(separator: "#").first.map(String.init) ?? targetCleaned
@@ -99,15 +95,6 @@ struct GraphView: View {
         }
 
         return GraphData(nodes: nodes, edges: edges)
-    }
-
-    private func flattenFiles(_ files: [MarkdownFile]) -> [MarkdownFile] {
-        var result: [MarkdownFile] = []
-        for f in files {
-            if f.isDirectory { result.append(contentsOf: flattenFiles(f.children ?? [])) }
-            else { result.append(f) }
-        }
-        return result
     }
 }
 
@@ -179,9 +166,7 @@ struct GraphWebView: NSViewRepresentable {
     }
 
     private func escapeJS(_ s: String) -> String {
-        s.replacingOccurrences(of: "\\", with: "\\\\")
-         .replacingOccurrences(of: "\"", with: "\\\"")
-         .replacingOccurrences(of: "\n", with: "\\n")
+        JSEscaping.escapeForStringLiteral(s)
     }
 
     private func generateGraphHTML() -> String {

@@ -24,8 +24,8 @@ struct PaneToolbar: View {
         appState.focusedPane == pane
     }
     private var isDirty: Bool {
-        // Simple dirty check: content in cache differs from disk
-        false // TODO: track dirty state properly in Phase 4
+        guard let filePath = tab?.filePath else { return false }
+        return appState.isFileDirty(filePath)
     }
 
     var body: some View {

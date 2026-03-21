@@ -23,10 +23,7 @@ enum ExportService {
     }
 
     private static func generateStandaloneHTML(markdown: String, title: String) -> String {
-        let escapedMD = markdown
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "`", with: "\\`")
-            .replacingOccurrences(of: "$", with: "\\$")
+        let escapedMD = JSEscaping.escapeForTemplateLiteral(markdown)
 
         return """
         <!DOCTYPE html>

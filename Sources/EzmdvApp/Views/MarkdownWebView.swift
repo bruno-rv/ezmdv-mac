@@ -115,20 +115,7 @@ struct MarkdownWebView: NSViewRepresentable {
     }
 
     private func flattenFiles(_ files: [MarkdownFile]?) -> [[String: String]] {
-        guard let files = files else { return [] }
-        var result: [[String: String]] = []
-        for file in files {
-            if file.isDirectory {
-                result.append(contentsOf: flattenFiles(file.children))
-            } else {
-                result.append([
-                    "name": file.name,
-                    "path": file.path,
-                    "relativePath": file.relativePath
-                ])
-            }
-        }
-        return result
+        MarkdownFile.flattenForJS(files)
     }
 
     private func loadMarkdown() -> String {
@@ -208,10 +195,7 @@ struct MarkdownWebView: NSViewRepresentable {
             if content == lastInjected { return }
             lastInjected = content
 
-            let escaped = content
-                .replacingOccurrences(of: "\\", with: "\\\\")
-                .replacingOccurrences(of: "`", with: "\\`")
-                .replacingOccurrences(of: "$", with: "\\$")
+            let escaped = JSEscaping.escapeForTemplateLiteral(content)
 
             webView.evaluateJavaScript("renderMarkdown(`\(escaped)`);") { _, error in
                 if let error = error { print("JS render error: \(error)") }
@@ -290,64 +274,21 @@ struct MarkdownWebView: NSViewRepresentable {
             guard let project = appState.projects.first(where: { $0.id == projectId }),
                   let files = project.files else { return }
 
-            // Split target#heading
-            let parts = target.split(separator: "#", maxSplits: 1)
-            let fileTarget = String(parts[0])
-            let headingAnchor = parts.count > 1 ? String(parts[1]) : nil
+            guard let match = WikiLinkResolver.resolve(target: target, in: files) else { return }
+            let headingAnchor = WikiLinkResolver.headingAnchor(from: target)
 
-            // Flatten and search
-            let flat = flattenAllFiles(files)
-            let targetLower = fileTarget.lowercased()
-            let withExt = targetLower.hasSuffix(".md") ? targetLower : targetLower + ".md"
-
-            // 1. Exact relative path match
-            var match = flat.first { $0.relativePath.lowercased() == withExt }
-
-            // 2. Basename match
-            if match == nil {
-                let basename = (withExt as NSString).lastPathComponent
-                let candidates = flat.filter { $0.name.lowercased() == basename }
-                if candidates.count == 1 { match = candidates[0] }
-            }
-
-            // 3. Basename without extension
-            if match == nil {
-                let candidates = flat.filter {
-                    let nameNoExt = ($0.name as NSString).deletingPathExtension.lowercased()
-                    return nameNoExt == targetLower
-                }
-                if candidates.count == 1 { match = candidates[0] }
-            }
-
-            if let match = match {
-                DispatchQueue.main.async {
-                    appState.openFile(projectId: projectId, filePath: match.path)
-                    // If heading anchor, scroll after a short delay
-                    if let anchor = headingAnchor {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            NotificationCenter.default.post(
-                                name: .scrollToHeading,
-                                object: nil,
-                                userInfo: ["anchor": anchor, "filePath": match.path]
-                            )
-                        }
+            DispatchQueue.main.async {
+                appState.openFile(projectId: projectId, filePath: match.path)
+                if let anchor = headingAnchor {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        NotificationCenter.default.post(
+                            name: .scrollToHeading,
+                            object: nil,
+                            userInfo: ["anchor": anchor, "filePath": match.path]
+                        )
                     }
                 }
             }
-        }
-
-        private func flattenAllFiles(_ files: [MarkdownFile]) -> [MarkdownFile] {
-            var result: [MarkdownFile] = []
-            for file in files {
-                if file.isDirectory {
-                    if let children = file.children {
-                        result.append(contentsOf: flattenAllFiles(children))
-                    }
-                } else {
-                    result.append(file)
-                }
-            }
-            return result
         }
 
         deinit {
