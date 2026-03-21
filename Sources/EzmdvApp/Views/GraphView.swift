@@ -73,7 +73,7 @@ struct GraphView: View {
             nodeMap[(file.name as NSString).deletingPathExtension.lowercased()] = i
         }
 
-        guard let regex = WikiLinkResolver.regex else {
+        guard WikiLinkResolver.regex != nil else {
             return GraphData(nodes: nodes, edges: edges)
         }
 
