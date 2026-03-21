@@ -10,7 +10,9 @@ struct EzmdvApp: App {
                 .environmentObject(appState)
                 .frame(minWidth: 900, minHeight: 600)
                 .onAppear {
-                    appState.loadState()
+                    DispatchQueue.main.async {
+                        appState.loadState()
+                    }
                 }
         }
         .windowStyle(.titleBar)
@@ -50,13 +52,22 @@ struct EzmdvApp: App {
                 .keyboardShortcut("w", modifiers: .command)
             }
 
-            // Export
+            // Export / Print
             CommandGroup(after: .saveItem) {
                 Divider()
                 Button("Export as HTML...") {
                     NotificationCenter.default.post(name: .exportHTML, object: nil)
                 }
                 .keyboardShortcut("e", modifiers: [.command, .shift])
+
+                Button("Print...") {
+                    NotificationCenter.default.post(name: .printCurrentFile, object: nil)
+                }
+                .keyboardShortcut("p", modifiers: .command)
+
+                Button("Export Vault as Site...") {
+                    NotificationCenter.default.post(name: .exportVaultSite, object: nil)
+                }
             }
 
             // Edit menu
@@ -88,12 +99,47 @@ struct EzmdvApp: App {
                 }
                 .keyboardShortcut("\\", modifiers: .command)
 
+                Button(appState.isFocusMode ? "Exit Focus Mode" : "Focus Mode") {
+                    NotificationCenter.default.post(name: .toggleFocusMode, object: nil)
+                }
+                .keyboardShortcut("f", modifiers: [.command, .shift])
+
+                Button("Presentation Mode") {
+                    NotificationCenter.default.post(name: .showPresentation, object: nil)
+                }
+                .keyboardShortcut("l", modifiers: [.command, .shift])
+
                 Divider()
 
                 Button("Toggle Dark Mode") {
                     appState.toggleTheme()
                 }
                 .keyboardShortcut("d", modifiers: [.command, .shift])
+            }
+
+            // Find menu
+            CommandMenu("Find") {
+                Button("Find...") {
+                    NotificationCenter.default.post(name: .openFind, object: nil)
+                }
+                .keyboardShortcut("f", modifiers: .command)
+
+                Button("Find & Replace...") {
+                    NotificationCenter.default.post(name: .openFindReplace, object: nil)
+                }
+                .keyboardShortcut("h", modifiers: .command)
+
+                Divider()
+
+                Button("Find Next") {
+                    NotificationCenter.default.post(name: .findNext, object: nil)
+                }
+                .keyboardShortcut("g", modifiers: .command)
+
+                Button("Find Previous") {
+                    NotificationCenter.default.post(name: .findPrevious, object: nil)
+                }
+                .keyboardShortcut("g", modifiers: [.command, .shift])
             }
 
             // Navigate menu
@@ -106,7 +152,18 @@ struct EzmdvApp: App {
                 Button("Knowledge Graph") {
                     NotificationCenter.default.post(name: .showKnowledgeGraph, object: nil)
                 }
-                .keyboardShortcut("g", modifiers: [.command, .shift])
+                .keyboardShortcut("g", modifiers: [.command, .option])
+
+                Button("Orphan Notes") {
+                    NotificationCenter.default.post(name: .showOrphanFinder, object: nil)
+                }
+
+                Divider()
+
+                Button("Daily Note") {
+                    DailyNoteService.openTodayNote(appState: appState)
+                }
+                .keyboardShortcut("d", modifiers: .command)
 
                 Divider()
 
@@ -137,7 +194,7 @@ struct EzmdvApp: App {
     private func closeCurrentTab() {
         let tab = appState.focusedPane == .secondary
             ? appState.secondaryTab : appState.primaryTab
-        if let tab = tab {
+        if let tab = tab, !tab.isPinned {
             appState.closeTab(tab)
         }
     }
@@ -165,4 +222,11 @@ extension Notification.Name {
     static let showCommandPalette = Notification.Name("showCommandPalette")
     static let showKnowledgeGraph = Notification.Name("showKnowledgeGraph")
     static let exportHTML = Notification.Name("exportHTML")
+    static let exportVaultSite = Notification.Name("exportVaultSite")
+    static let openFind        = Notification.Name("openFind")
+    static let openFindReplace = Notification.Name("openFindReplace")
+    static let findNext        = Notification.Name("findNext")
+    static let findPrevious    = Notification.Name("findPrevious")
+    static let closeFind       = Notification.Name("closeFind")
+    // showOrphanFinder is declared in OrphanFinderView.swift
 }

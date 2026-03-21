@@ -8,6 +8,7 @@ struct SavedProject: Codable {
 struct SavedTab: Codable {
     let projectPath: String  // match by project path since UUIDs change
     let filePath: String
+    var isPinned: Bool?
 }
 
 struct SavedState: Codable {
@@ -15,6 +16,8 @@ struct SavedState: Codable {
     let isDarkMode: Bool
     var tabs: [SavedTab]?
     var activeTabFilePath: String?
+    var recentFilePaths: [String]?
+    var projectSortOrders: [String: String]?  // project path → FileSortOrder raw value
 }
 
 struct SearchResult: Identifiable {

@@ -23,18 +23,37 @@ struct CommandPalette: View {
     private var filteredFiles: [PaletteItem] {
         let q = searchQuery.lowercased()
         var items: [PaletteItem] = []
+        var seenPaths = Set<String>()
 
-        // Open tabs first
+        // When query is empty, show recent files (not currently open as primary) first
+        if q.isEmpty {
+            for filePath in appState.recentFilePaths.prefix(6) {
+                guard filePath != appState.primaryTab?.filePath else { continue }
+                guard let (project, file) = findFile(at: filePath) else { continue }
+                items.append(PaletteItem(
+                    icon: "clock", title: file.name,
+                    subtitle: project.name, kind: .recent,
+                    score: 1000,
+                    action: { appState.openFile(projectId: project.id, filePath: filePath); isPresented = false }
+                ))
+                seenPaths.insert(filePath)
+            }
+        }
+
+        // Open tabs
         for tab in appState.tabs {
             let projectName = appState.projects.first { $0.id == tab.projectId }?.name ?? ""
             let score = fuzzyScore(query: q, target: tab.fileName.lowercased())
             if q.isEmpty || score > 0 {
-                items.append(PaletteItem(
-                    icon: "doc.text", title: tab.fileName,
-                    subtitle: projectName, kind: .tab,
-                    score: score + (tab == appState.primaryTab ? 50 : 0),
-                    action: { appState.openFile(projectId: tab.projectId, filePath: tab.filePath); isPresented = false }
-                ))
+                if !seenPaths.contains(tab.filePath) {
+                    items.append(PaletteItem(
+                        icon: "doc.text", title: tab.fileName,
+                        subtitle: projectName, kind: .tab,
+                        score: score + (tab == appState.primaryTab ? 50 : 0),
+                        action: { appState.openFile(projectId: tab.projectId, filePath: tab.filePath); isPresented = false }
+                    ))
+                    seenPaths.insert(tab.filePath)
+                }
             }
         }
 
@@ -42,8 +61,7 @@ struct CommandPalette: View {
         for project in appState.projects {
             guard let files = project.files else { continue }
             for file in flattenFiles(files) {
-                // Skip if already in tabs
-                if items.contains(where: { $0.title == file.name && $0.kind == .tab }) { continue }
+                if seenPaths.contains(file.path) { continue }
                 let score = fuzzyScore(query: q, target: file.name.lowercased())
                 let pathScore = fuzzyScore(query: q, target: file.relativePath.lowercased())
                 let best = max(score, pathScore)
@@ -54,11 +72,16 @@ struct CommandPalette: View {
                         score: best,
                         action: { appState.openFile(projectId: project.id, filePath: file.path); isPresented = false }
                     ))
+                    seenPaths.insert(file.path)
                 }
             }
         }
 
         return items.sorted { $0.score > $1.score }.prefix(12).map { $0 }
+    }
+
+    private func findFile(at filePath: String) -> (Project, MarkdownFile)? {
+        appState.findFile(at: filePath)
     }
 
     private var filteredActions: [PaletteItem] {
@@ -150,6 +173,7 @@ struct CommandPalette: View {
         .onAppear { isFocused = true; query = "" }
         .onKeyPress(.upArrow) { moveSelection(-1); return .handled }
         .onKeyPress(.downArrow) { moveSelection(1); return .handled }
+        .onKeyPress(.tab) { executeSelected(); return .handled }
         .onKeyPress(.escape) { isPresented = false; return .handled }
     }
 
@@ -158,7 +182,7 @@ struct CommandPalette: View {
         HStack(spacing: 10) {
             Image(systemName: item.icon)
                 .font(.system(size: 12))
-                .foregroundStyle(item.kind == .tab ? Color.accentColor : .secondary)
+                .foregroundStyle(item.kind == .tab ? Color.accentColor : item.kind == .recent ? Color.secondary : .secondary)
                 .frame(width: 20)
 
             VStack(alignment: .leading, spacing: 1) {
@@ -177,6 +201,14 @@ struct CommandPalette: View {
 
             if item.kind == .tab {
                 Text("Tab")
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.secondary.opacity(0.1))
+                    .clipShape(Capsule())
+            } else if item.kind == .recent {
+                Text("Recent")
                     .font(.system(size: 9, weight: .medium))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 6)
@@ -213,5 +245,5 @@ struct PaletteItem {
     var score: Int
     let action: () -> Void
 
-    enum PaletteItemKind { case tab, file, action }
+    enum PaletteItemKind { case tab, file, recent, action }
 }

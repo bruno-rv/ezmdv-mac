@@ -30,13 +30,42 @@ struct SidebarView: View {
             .padding(.vertical, 8)
             .background(.bar)
 
+            // Tag filter chip
+            if let tag = appState.activeTagFilter {
+                HStack(spacing: 4) {
+                    Text("#\(tag)")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Color.accentColor)
+                    Button(action: { appState.activeTagFilter = nil }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .buttonStyle(.plain)
+                    Spacer()
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(.bar)
+            }
+
             Divider()
 
-            // Search results or project tree
+            // Search results, tag-filtered files, or full project tree
             if !searchText.isEmpty {
                 SearchResultsView()
+            } else if let tag = appState.activeTagFilter {
+                VStack(spacing: 0) {
+                    TagFilteredFilesView(tag: tag)
+                    Divider()
+                    TagFilterPanelView()
+                }
             } else {
-                ProjectListView()
+                VStack(spacing: 0) {
+                    ProjectListView()
+                    Divider()
+                    TagFilterPanelView()
+                }
             }
         }
         .toolbar {
@@ -46,20 +75,6 @@ struct SidebarView: View {
                 }
                 .help("Open folder (\u{2318}O)")
             }
-        }
-        .onDrop(of: [.fileURL], isTargeted: nil) { providers in
-            for provider in providers {
-                _ = provider.loadObject(ofClass: URL.self) { url, _ in
-                    guard let url = url else { return }
-                    var isDir: ObjCBool = false
-                    if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {
-                        DispatchQueue.main.async {
-                            appState.addProject(at: url.path)
-                        }
-                    }
-                }
-            }
-            return true
         }
         // Error alert
         .alert("Error", isPresented: Binding(
@@ -244,6 +259,19 @@ struct ProjectListView: View {
 
         Divider()
 
+        let currentSort = appState.projectSortOrders[project.id]
+        Picker("Sort By", selection: Binding(
+            get: { currentSort ?? AppState.FileSortOrder.nameAsc },
+            set: { appState.setSortOrder($0, for: project) }
+        )) {
+            ForEach(AppState.FileSortOrder.allCases, id: \.self) { order in
+                Text(order.label).tag(order)
+            }
+        }
+        .pickerStyle(.inline)
+
+        Divider()
+
         Button("Rename Project...") {
             renamingProjectId = project.id
             renameText = project.name
@@ -309,16 +337,25 @@ struct ProjectListView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 12) {
             Image(systemName: "folder.badge.plus")
-                .font(.system(size: 28))
+                .font(.system(size: 32))
                 .foregroundStyle(.tertiary)
-            Text("No projects yet")
-                .font(.caption)
+            Text("No projects open")
+                .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.secondary)
-            Text("Press \u{2318}O to open a folder")
-                .font(.caption2)
+            Text("Open a folder to get started")
+                .font(.system(size: 11))
                 .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
+            Button(action: { appState.showOpenFolderDialog() }) {
+                Label("Open Folder", systemImage: "folder")
+                    .font(.system(size: 11))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
         }
+        .padding(.horizontal, 16)
+        .frame(maxWidth: .infinity)
     }
 }

@@ -30,20 +30,31 @@
 
 ### Navigation & Discovery
 - **Wiki-links** — `[[file]]`, `[[file|alias]]`, `[[file#heading]]` with click-to-navigate
-- **Backlinks panel** — see which files reference the current document
-- **Command palette** (⌘K) — fuzzy search across files and actions
-- **Knowledge graph** (⌘⇧G) — interactive force-directed visualization of file connections
+- **Backlinks panel** — see which files reference the current document, with unlinked mention detection and one-click linking
+- **Wiki-link-aware rename** — renaming a file automatically updates all `[[links]]` across the project
+- **Command palette** (⌘K) — fuzzy search across files and actions (Tab or Enter to select)
+- **Knowledge graph** (⌘⌥G) — immersive space-themed visualization with animated physics
+  - Pulsing, glowing nodes with cosmic color palette
+  - Twinkling star background with nebula gradients
+  - Hover preview panel (3s) with rendered markdown, collapsible headers, and expand/collapse
+  - Pin nodes by dragging, double-click to unpin
   - Display engine controls: gravity, link distance, repulsion
-  - Drag nodes, pan, zoom (scroll/pinch), export SVG
+  - Filter by search, orphan status, or folder
+  - Clean SVG export with proper viewBox and inlined styles
+- **Orphan finder** — detect notes with no incoming or outgoing links
 - **Table of contents** panel extracted from headings
 
 ### Project Management
-- **Multi-project sidebar** with file tree
-- **Tab bar** with tab persistence across sessions
+- **Multi-project sidebar** with file tree and sort options (name, date, size)
+- **Tab bar** with tab persistence across sessions, pinned tabs
 - **Split view** — compare two files side by side (⌘\\)
-- **File operations** — create, rename, delete files and folders
-- **Drag & drop** folders into the sidebar
-- **Search** across all projects (filename + content)
+- **File operations** — create, rename, delete, move files and folders
+- **Move to...** — relocate files/folders via context menu with folder picker
+- **Search** across all projects (filename + content, uses in-memory cache)
+- **Focus mode** — hide sidebar, tabs, and status bar for distraction-free writing (Esc to exit)
+- **Tag system** — `#tag` detection with tag filter panel in sidebar
+- **Daily notes** — quick-create and navigate daily journal entries
+- **Templates** — create files from project-specific templates
 
 ---
 
@@ -109,10 +120,14 @@ ezmdv-native/
 ├── Sources/EzmdvApp/
 │   ├── EzmdvApp.swift         # App entry point, keyboard shortcuts
 │   ├── Models/
-│   │   ├── AppState.swift     # Central state: projects, tabs, auto-save
-│   │   ├── Project.swift      # Project & file tree model
-│   │   ├── SavedState.swift   # Persistent state (JSON serialization)
-│   │   └── Tab.swift          # Tab model
+│   │   ├── AppState.swift          # Central state + wiki-link index
+│   │   ├── AppState+Projects.swift # Project/file CRUD, wiki-link rename
+│   │   ├── AppState+FileContent.swift # Content cache, auto-save
+│   │   ├── AppState+Persistence.swift # State save/restore
+│   │   ├── AppState+Tabs.swift     # Tab management
+│   │   ├── Project.swift           # Project & file tree model
+│   │   ├── SavedState.swift        # Persistent state (JSON)
+│   │   └── Tab.swift               # Tab model
 │   ├── Views/
 │   │   ├── ContentView.swift      # Main layout: sidebar + detail
 │   │   ├── SidebarView.swift      # Project file tree
@@ -122,21 +137,32 @@ ezmdv-native/
 │   │   ├── PaneToolbar.swift      # View mode toggle, panels
 │   │   ├── CommandPalette.swift   # Fuzzy file/action search (⌘K)
 │   │   ├── BacklinksView.swift    # Incoming wiki-link references
-│   │   ├── GraphView.swift        # Force-directed knowledge graph
+│   │   ├── GraphView.swift        # Canvas-based knowledge graph (space theme)
+│   │   ├── OrphanFinderView.swift # Orphan note detection
 │   │   ├── TOCView.swift          # Table of contents panel
 │   │   ├── StatusBar.swift        # Word count, save state
+│   │   ├── FindBar.swift          # Find & replace bar
 │   │   ├── SplitContentView.swift # Side-by-side file comparison
 │   │   └── FileTreeView.swift     # Recursive file tree component
 │   ├── Services/
-│   │   ├── FileService.swift      # File CRUD operations
+│   │   ├── FileService.swift      # File CRUD + move operations
 │   │   ├── FileScanner.swift      # Recursive directory scanner
-│   │   ├── FileWatcher.swift      # DispatchSource file monitoring
-│   │   ├── SearchService.swift    # Full-text search
-│   │   └── ExportService.swift    # HTML export
+│   │   ├── FileWatcher.swift      # FSEvents file monitoring
+│   │   ├── SearchService.swift    # Full-text search (cache-aware)
+│   │   ├── TagService.swift       # #tag extraction and indexing
+│   │   ├── TemplateService.swift  # File template support
+│   │   ├── DailyNoteService.swift # Daily note creation
+│   │   └── ExportService.swift    # HTML + static site export
 │   └── Resources/
 │       ├── markdown.html      # Render/edit host page (inlined CSS)
 │       ├── markdown.css        # Base styles (referenced by export)
+│       ├── marked.min.js       # Markdown parser library
 │       └── editor.js           # CodeMirror 6 bundle (built from npm)
+├── Sources/EzmdvCore/
+│   ├── WikiLinkIndex.swift     # Pure-logic wiki-link index (backlinks, outgoing)
+│   ├── TagExtractor.swift      # #tag extraction from markdown
+│   ├── DailyNoteLogic.swift    # Date-based note path logic
+│   └── LRUCache.swift          # Generic LRU cache
 ├── resources/
 │   ├── editor-src.js          # CodeMirror source (pre-bundle)
 │   └── package.json           # npm deps for editor build
@@ -160,9 +186,13 @@ The app uses a **hybrid rendering** approach: SwiftUI provides the native shell 
 | ⌘E | Toggle edit mode |
 | ⌘P | Toggle live preview |
 | ⌘\\ | Split view |
-| ⌘⇧G | Knowledge graph |
+| ⌘⌥G | Knowledge graph |
 | ⌘⇧E | Export to HTML |
 | ⌘⇧D | Toggle dark mode |
+| ⌘F | Find in file |
+| ⌘G | Find next |
+| ⌘⇧G | Find previous |
+| Esc | Exit focus mode / close graph |
 
 ---
 

@@ -1,4 +1,5 @@
 import SwiftUI
+import EzmdvCore
 
 struct PaneToolbar: View {
     @EnvironmentObject var appState: AppState
@@ -28,6 +29,11 @@ struct PaneToolbar: View {
         return appState.isFileDirty(filePath)
     }
 
+    private var dailyNoteDate: Date? {
+        guard let filePath = tab?.filePath else { return nil }
+        return DailyNoteLogic.date(fromDailyNotePath: filePath)
+    }
+
     var body: some View {
         HStack(spacing: 6) {
             // Left: split label + filename
@@ -53,6 +59,34 @@ struct PaneToolbar: View {
                     .lineLimit(1)
             }
 
+            if let date = dailyNoteDate {
+                HStack(spacing: 2) {
+                    Button(action: {
+                        let prev = DailyNoteLogic.date(byAdding: -1, to: date)
+                        DailyNoteService.openNote(for: prev, appState: appState)
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 10, weight: .medium))
+                            .frame(width: 22, height: 22)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Yesterday")
+
+                    Button(action: {
+                        let next = DailyNoteLogic.date(byAdding: 1, to: date)
+                        DailyNoteService.openNote(for: next, appState: appState)
+                    }) {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 10, weight: .medium))
+                            .frame(width: 22, height: 22)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Tomorrow")
+                }
+                .background(Color.secondary.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+            }
+
             Spacer()
 
             // 3-way mode toggle
@@ -60,7 +94,7 @@ struct PaneToolbar: View {
                 modeButton(mode: "view", icon: "eye", label: "View")
                 modeButton(mode: "edit", icon: "pencil", label: "Edit")
                 if !splitContext {
-                    modeButton(mode: "preview", icon: "rectangle.split.2x1", label: "Preview")
+                    modeButton(mode: "preview", icon: "rectangle.lefthalf.inset.filled.arrow.left", label: "Preview")
                 }
             }
             .background(Color.secondary.opacity(0.08))
@@ -136,9 +170,17 @@ struct PaneToolbar: View {
                 Label("Refresh from Disk", systemImage: "arrow.clockwise")
             }
 
-            Button(action: { isFullscreen.toggle() }) {
-                Label(isFullscreen ? "Exit Fullscreen" : "Fullscreen",
-                      systemImage: isFullscreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+            Button(action: {
+                NotificationCenter.default.post(name: .toggleFocusMode, object: nil)
+            }) {
+                Label(appState.isFocusMode ? "Exit Focus Mode" : "Focus Mode",
+                      systemImage: appState.isFocusMode ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+            }
+
+            Button(action: {
+                NotificationCenter.default.post(name: .showPresentation, object: nil)
+            }) {
+                Label("Presentation Mode", systemImage: "play.rectangle")
             }
 
             if !splitContext {

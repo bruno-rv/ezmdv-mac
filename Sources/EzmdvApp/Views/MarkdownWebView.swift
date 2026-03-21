@@ -8,9 +8,21 @@ struct MarkdownWebView: NSViewRepresentable {
     var autoScrollActive: Bool = false
     var autoScrollInterval: Double = 5
     var autoScrollPercent: Double = 10
+    var printTrigger: Int = 0
+    var presentationTrigger: Int = 0
+    var findQuery: String = ""
+    var findTrigger: Int = 0
+    var findDirection: Int = 1
+    var replaceTrigger: Int = 0
+    var replaceAllTrigger: Int = 0
+    var replaceText: String = ""
+    var findBarVisible: Bool = false
     var onHeadingsExtracted: (([TOCHeading]) -> Void)? = nil
     var onContentChanged: ((String) -> Void)? = nil
     var onAutoScrollStopped: (() -> Void)? = nil
+    var onPresentationChanged: ((Bool) -> Void)? = nil
+    var onFindResult: ((Int, Int) -> Void)? = nil
+    var onFindClose: (() -> Void)? = nil
     @EnvironmentObject var appState: AppState
 
     func makeNSView(context: Context) -> WKWebView {
@@ -20,6 +32,8 @@ struct MarkdownWebView: NSViewRepresentable {
         userController.add(context.coordinator, name: "editorHandler")
         userController.add(context.coordinator, name: "readyHandler")
         userController.add(context.coordinator, name: "autoScrollHandler")
+        userController.add(context.coordinator, name: "presentationHandler")
+        userController.add(context.coordinator, name: "findHandler")
 
         // Inject editor.js via WKUserScript (avoids </script> breakage from inlining)
         if let editorURL = Bundle.module.url(forResource: "editor", withExtension: "js"),
@@ -49,6 +63,9 @@ struct MarkdownWebView: NSViewRepresentable {
         context.coordinator.onHeadingsExtracted = onHeadingsExtracted
         context.coordinator.onContentChanged = onContentChanged
         context.coordinator.onAutoScrollStopped = onAutoScrollStopped
+        context.coordinator.onPresentationChanged = onPresentationChanged
+        context.coordinator.onFindResult = onFindResult
+        context.coordinator.onFindClose = onFindClose
 
         // Find the project for this file to pass file list for wiki-link resolution
         if let tab = appState.tabs.first(where: { $0.filePath == filePath }),
@@ -73,6 +90,9 @@ struct MarkdownWebView: NSViewRepresentable {
         context.coordinator.onHeadingsExtracted = onHeadingsExtracted
         context.coordinator.onContentChanged = onContentChanged
         context.coordinator.onAutoScrollStopped = onAutoScrollStopped
+        context.coordinator.onPresentationChanged = onPresentationChanged
+        context.coordinator.onFindResult = onFindResult
+        context.coordinator.onFindClose = onFindClose
         context.coordinator.filePath = filePath
 
         if context.coordinator.jsReady {
@@ -103,6 +123,90 @@ struct MarkdownWebView: NSViewRepresentable {
                 }
             }
 
+            // Print trigger
+            if context.coordinator.lastPrintTrigger != printTrigger {
+                context.coordinator.lastPrintTrigger = printTrigger
+                let printInfo = NSPrintInfo.shared.copy() as! NSPrintInfo
+                printInfo.topMargin = 36; printInfo.bottomMargin = 36
+                printInfo.leftMargin = 36; printInfo.rightMargin = 36
+                let op = webView.printOperation(with: printInfo)
+                op.showsPrintPanel = true
+                op.showsProgressPanel = true
+                op.run()
+            }
+
+            // Presentation trigger
+            if context.coordinator.lastPresentationTrigger != presentationTrigger {
+                context.coordinator.lastPresentationTrigger = presentationTrigger
+                webView.evaluateJavaScript("enterPresentation()", completionHandler: nil)
+            }
+
+            // Find trigger
+            if context.coordinator.lastFindTrigger != findTrigger {
+                context.coordinator.lastFindTrigger = findTrigger
+                let escapedQuery = JSEscaping.escapeForStringLiteral(findQuery)
+                let isNewQuery = context.coordinator.lastFindQuery != findQuery
+                context.coordinator.lastFindQuery = findQuery
+
+                if editorMode == "view" {
+                    if isNewQuery || findTrigger == 1 {
+                        let dir = findDirection >= 0 ? 1 : -1
+                        webView.evaluateJavaScript(
+                            "findInView(\"\(escapedQuery)\", \(dir))", completionHandler: nil)
+                    } else {
+                        if findDirection >= 0 {
+                            webView.evaluateJavaScript("findNextInView()", completionHandler: nil)
+                        } else {
+                            webView.evaluateJavaScript("findPrevInView()", completionHandler: nil)
+                        }
+                    }
+                } else {
+                    if isNewQuery || findTrigger == 1 {
+                        let dir = findDirection >= 0 ? 1 : -1
+                        webView.evaluateJavaScript(
+                            "editorFindOpen(\"\(escapedQuery)\", \(dir))",
+                            completionHandler: nil)
+                    } else {
+                        if findDirection >= 0 {
+                            webView.evaluateJavaScript("editorFindNext()", completionHandler: nil)
+                        } else {
+                            webView.evaluateJavaScript("editorFindPrev()", completionHandler: nil)
+                        }
+                    }
+                }
+            }
+
+            // Replace trigger (edit mode only)
+            if context.coordinator.lastReplaceTrigger != replaceTrigger {
+                context.coordinator.lastReplaceTrigger = replaceTrigger
+                let escapedReplacement = JSEscaping.escapeForStringLiteral(replaceText)
+                webView.evaluateJavaScript(
+                    "editorReplaceCurrentMatch(\"\(escapedReplacement)\")",
+                    completionHandler: nil)
+            }
+
+            // Replace All trigger (edit mode only)
+            if context.coordinator.lastReplaceAllTrigger != replaceAllTrigger {
+                context.coordinator.lastReplaceAllTrigger = replaceAllTrigger
+                let escapedQuery = JSEscaping.escapeForStringLiteral(findQuery)
+                let escapedReplacement = JSEscaping.escapeForStringLiteral(replaceText)
+                webView.evaluateJavaScript(
+                    "editorReplaceAllMatches(\"\(escapedQuery)\", \"\(escapedReplacement)\")",
+                    completionHandler: nil)
+            }
+
+            // Clear find when bar closes
+            if context.coordinator.lastFindBarVisible != findBarVisible {
+                context.coordinator.lastFindBarVisible = findBarVisible
+                if !findBarVisible {
+                    if editorMode == "view" {
+                        webView.evaluateJavaScript("clearFindHighlights()", completionHandler: nil)
+                    } else {
+                        webView.evaluateJavaScript("editorCloseSearch()", completionHandler: nil)
+                    }
+                }
+            }
+
             // Inject content (only in view mode — in edit/preview, editor owns content)
             if editorMode == "view" {
                 context.coordinator.injectMarkdown(content)
@@ -119,9 +223,9 @@ struct MarkdownWebView: NSViewRepresentable {
     }
 
     private func loadMarkdown() -> String {
-        if let cached = appState.contentCache[filePath] { return cached }
+        if let cached = appState.contentCache.get(filePath) { return cached }
         if let content = try? String(contentsOfFile: filePath, encoding: .utf8) {
-            DispatchQueue.main.async { appState.contentCache[filePath] = content }
+            DispatchQueue.main.async { appState.contentCache.set(filePath, content) }
             return content
         }
         return "# Error\nCould not read file."
@@ -141,10 +245,21 @@ struct MarkdownWebView: NSViewRepresentable {
         var lastInjected: String?
         var lastMode: String = "view"
         var lastAutoScrollActive: Bool = false
+        var lastPrintTrigger: Int = 0
+        var lastPresentationTrigger: Int = 0
+        var lastFindTrigger: Int = 0
+        var lastFindQuery: String = ""
+        var lastReplaceTrigger: Int = 0
+        var lastReplaceAllTrigger: Int = 0
+        var lastFindBarVisible: Bool = false
         var jsReady = false
+        private var transclusionDebounceTimer: Timer?
         var onHeadingsExtracted: (([TOCHeading]) -> Void)?
         var onContentChanged: ((String) -> Void)?
         var onAutoScrollStopped: (() -> Void)?
+        var onPresentationChanged: ((Bool) -> Void)?
+        var onFindResult: ((Int, Int) -> Void)?
+        var onFindClose: (() -> Void)?
 
         private func onJSReady() {
             jsReady = true
@@ -188,18 +303,61 @@ struct MarkdownWebView: NSViewRepresentable {
         }
 
         func injectMarkdown(_ content: String) {
-            guard jsReady, let webView = webView else {
+            guard jsReady, webView != nil else {
                 pendingContent = content
                 return
             }
             if content == lastInjected { return }
             lastInjected = content
 
+            transclusionDebounceTimer?.invalidate()
             let escaped = JSEscaping.escapeForTemplateLiteral(content)
 
-            webView.evaluateJavaScript("renderMarkdown(`\(escaped)`);") { _, error in
-                if let error = error { print("JS render error: \(error)") }
+            transclusionDebounceTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: false) { [weak self] _ in
+                guard let self, let webView = self.webView else { return }
+
+                // Resolve transclusions: ![[filename]] → content map (disk reads happen here)
+                let transclusions = self.resolveTransclusions(in: content, depth: 0)
+                if !transclusions.isEmpty,
+                   let data = try? JSONSerialization.data(withJSONObject: transclusions),
+                   let json = String(data: data, encoding: .utf8) {
+                    webView.evaluateJavaScript("setTransclusions(\(json))", completionHandler: nil)
+                }
+
+                webView.evaluateJavaScript("renderMarkdown(`\(escaped)`);") { _, error in
+                    if let error = error { print("JS render error: \(error)") }
+                }
             }
+        }
+
+        private func resolveTransclusions(in content: String, depth: Int) -> [String: String] {
+            guard depth < 3, let appState = appState, let projectId = projectId else { return [:] }
+            guard let project = appState.projects.first(where: { $0.id == projectId }),
+                  let files = project.files else { return [:] }
+
+            let pattern = "!\\[\\[([^\\[\\]]+)\\]\\]"
+            guard let regex = try? NSRegularExpression(pattern: pattern) else { return [:] }
+            let ns = content as NSString
+            let matches = regex.matches(in: content, range: NSRange(location: 0, length: ns.length))
+
+            var result: [String: String] = [:]
+            for match in matches {
+                guard match.numberOfRanges >= 2 else { continue }
+                let inner = ns.substring(with: match.range(at: 1))
+                let target = inner.split(separator: "|").first.map(String.init) ?? inner
+                let key = target.split(separator: "#").first
+                    .map { String($0).trimmingCharacters(in: .whitespaces).lowercased()
+                        .replacingOccurrences(of: ".md", with: "") } ?? ""
+                if result[key] != nil { continue }
+                if let resolved = WikiLinkResolver.resolve(target: target, in: files),
+                   let fileContent = try? String(contentsOfFile: resolved.path, encoding: .utf8) {
+                    result[key] = fileContent
+                    // Recurse for nested transclusions
+                    let nested = resolveTransclusions(in: fileContent, depth: depth + 1)
+                    nested.forEach { result[$0] = $1 }
+                }
+            }
+            return result
         }
 
         // Handle messages from JS
@@ -227,6 +385,19 @@ struct MarkdownWebView: NSViewRepresentable {
                let info = message.body as? [String: Any],
                let active = info["active"] as? Bool, !active {
                 DispatchQueue.main.async { self.onAutoScrollStopped?() }
+            }
+
+            if message.name == "presentationHandler",
+               let info = message.body as? [String: Any],
+               let active = info["active"] as? Bool {
+                DispatchQueue.main.async { self.onPresentationChanged?(active) }
+            }
+
+            if message.name == "findHandler",
+               let info = message.body as? [String: Any],
+               let current = info["current"] as? Int,
+               let total = info["total"] as? Int {
+                DispatchQueue.main.async { self.onFindResult?(current, total) }
             }
 
             // Content from editor (both legacy editHandler and new editorHandler)
@@ -292,6 +463,7 @@ struct MarkdownWebView: NSViewRepresentable {
         }
 
         deinit {
+            transclusionDebounceTimer?.invalidate()
             NotificationCenter.default.removeObserver(self)
         }
     }

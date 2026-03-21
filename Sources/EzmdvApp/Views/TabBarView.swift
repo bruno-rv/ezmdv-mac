@@ -40,17 +40,27 @@ struct TabItemView: View {
             appState.openFile(projectId: tab.projectId, filePath: tab.filePath)
         }) {
             HStack(spacing: 6) {
-                if isDirty {
+                // Dirty indicator (only for unpinned tabs — pinned use pin icon)
+                if isDirty && !tab.isPinned {
                     Circle()
                         .fill(Color.orange)
                         .frame(width: 6, height: 6)
                 }
+
+                // Pin icon for pinned tabs
+                if tab.isPinned {
+                    Image(systemName: "pin.fill")
+                        .font(.system(size: 8))
+                        .foregroundStyle(isDirty ? .orange : Color.accentColor.opacity(0.7))
+                }
+
                 Text(tab.fileName)
                     .font(.system(size: 11))
                     .lineLimit(1)
                     .foregroundStyle(isActive ? .primary : .secondary)
 
-                if hovering || isActive {
+                // Close button only for unpinned tabs
+                if !tab.isPinned && (hovering || isActive) {
                     Button(action: { appState.closeTab(tab) }) {
                         Image(systemName: "xmark")
                             .font(.system(size: 8, weight: .bold))
@@ -72,6 +82,17 @@ struct TabItemView: View {
         }
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
+        .contextMenu {
+            if tab.isPinned {
+                Button("Unpin Tab") { appState.setPinned(tab, pinned: false) }
+                Divider()
+                Button("Close Tab", role: .destructive) { appState.closeTab(tab) }
+            } else {
+                Button("Pin Tab") { appState.setPinned(tab, pinned: true) }
+                Divider()
+                Button("Close Tab") { appState.closeTab(tab) }
+            }
+        }
         .overlay(alignment: .trailing) {
             Divider().frame(height: 16)
         }
