@@ -29,12 +29,21 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .showKnowledgeGraph)) { _ in
             showGraph.toggle()
         }
-        .overlay(alignment: isGraphMinimized ? .bottom : .center) {
+        .overlay {
             if showGraph, let tab = appState.primaryTab {
-                GraphView(isPresented: $showGraph, projectId: tab.projectId, isMinimized: $isGraphMinimized)
-                    .frame(maxWidth: isGraphMinimized ? .infinity : .infinity,
-                           maxHeight: isGraphMinimized ? nil : .infinity)
+                if isGraphMinimized {
+                    VStack {
+                        Spacer()
+                        GraphView(isPresented: $showGraph, projectId: tab.projectId, isMinimized: $isGraphMinimized)
+                            .frame(maxWidth: .infinity)
+                    }
                     .transition(.opacity)
+                } else {
+                    GraphView(isPresented: $showGraph, projectId: tab.projectId, isMinimized: $isGraphMinimized)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .ignoresSafeArea()
+                        .transition(.opacity)
+                }
             }
         }
         .animation(.easeOut(duration: 0.2), value: showGraph)

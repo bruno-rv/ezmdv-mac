@@ -96,6 +96,7 @@ class MarkdownEditorManager {
         ...searchKeymap,
         ...foldKeymap,
         ...completionKeymap,
+        { key: 'Tab', run: acceptCompletion },
         indentWithTab,
       ]),
       // Theme

@@ -23,17 +23,19 @@
 - **Markdown rendering** with syntax highlighting (highlight.js), math (KaTeX), diagrams (Mermaid), and GFM support
 - **CodeMirror 6 editor** with syntax highlighting, line numbers, and markdown-specific features
 - **Live preview** — side-by-side editor + rendered output
-- **Slash commands** in editor: `/h1`, `/code`, `/table`, `/task`, and more
+- **Slash commands** in editor: `/h1`, `/code`, `/table`, `/task`, and more — accept with Enter or Tab
 - **Auto-save** with dirty file indicator (3s debounce)
+- **Auto-refresh** — files are automatically reloaded when changed on disk
 - **Export to HTML** — standalone file with all styling baked in (⌘⇧E)
 
 ### Navigation & Discovery
 - **Wiki-links** — `[[file]]`, `[[file|alias]]`, `[[file#heading]]` with click-to-navigate
 - **Backlinks panel** — see which files reference the current document
 - **Command palette** (⌘K) — fuzzy search across files and actions
-- **Knowledge graph** (⌘⇧G) — interactive force-directed visualization of file connections
+- **Knowledge graph** (⌘⇧G) — full-screen interactive force-directed visualization of file connections
   - Display engine controls: gravity, link distance, repulsion
   - Drag nodes, pan, zoom (scroll/pinch), export SVG
+  - Minimizable to a compact bottom bar
 - **Table of contents** panel extracted from headings
 
 ### Project Management
@@ -43,6 +45,7 @@
 - **File operations** — create, rename, delete files and folders
 - **Drag & drop** folders into the sidebar
 - **Search** across all projects (filename + content)
+- **About dialog** with version info and contact details
 
 ---
 
@@ -123,7 +126,7 @@ ezmdv-native/
 │   │   ├── BacklinksView.swift    # Incoming wiki-link references
 │   │   ├── GraphView.swift        # Force-directed knowledge graph
 │   │   ├── TOCView.swift          # Table of contents panel
-│   │   ├── StatusBar.swift        # Word count, save state
+│   │   ├── StatusBar.swift        # Word count, save state, about dialog
 │   │   ├── SplitContentView.swift # Side-by-side file comparison
 │   │   └── FileTreeView.swift     # Recursive file tree component
 │   ├── Services/

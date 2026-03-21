@@ -96,6 +96,13 @@ struct EzmdvApp: App {
                 .keyboardShortcut("d", modifiers: [.command, .shift])
             }
 
+            // Help menu — About
+            CommandGroup(replacing: .appInfo) {
+                Button("About ezmdv") {
+                    NotificationCenter.default.post(name: .showAbout, object: nil)
+                }
+            }
+
             // Navigate menu
             CommandMenu("Navigate") {
                 Button("Command Palette") {
@@ -165,4 +172,5 @@ extension Notification.Name {
     static let showCommandPalette = Notification.Name("showCommandPalette")
     static let showKnowledgeGraph = Notification.Name("showKnowledgeGraph")
     static let exportHTML = Notification.Name("exportHTML")
+    static let showAbout = Notification.Name("showAbout")
 }

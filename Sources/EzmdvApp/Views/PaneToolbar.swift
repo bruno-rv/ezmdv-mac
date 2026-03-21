@@ -13,7 +13,6 @@ struct PaneToolbar: View {
     @Binding var autoScrollActive: Bool
     @Binding var autoScrollInterval: Double
     @Binding var autoScrollPercent: Double
-    let onRefresh: () -> Void
     let onSave: () -> Void
     let onAutoScrollToggle: () -> Void
 
@@ -60,7 +59,7 @@ struct PaneToolbar: View {
                 modeButton(mode: "view", icon: "eye", label: "View")
                 modeButton(mode: "edit", icon: "pencil", label: "Edit")
                 if !splitContext {
-                    modeButton(mode: "preview", icon: "rectangle.split.2x1", label: "Preview")
+                    modeButton(mode: "preview", icon: "rectangle.righthalf.inset.filled", label: "Preview")
                 }
             }
             .background(Color.secondary.opacity(0.08))
@@ -132,10 +131,6 @@ struct PaneToolbar: View {
 
         // View
         Section("View") {
-            Button(action: onRefresh) {
-                Label("Refresh from Disk", systemImage: "arrow.clockwise")
-            }
-
             Button(action: { isFullscreen.toggle() }) {
                 Label(isFullscreen ? "Exit Fullscreen" : "Fullscreen",
                       systemImage: isFullscreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")

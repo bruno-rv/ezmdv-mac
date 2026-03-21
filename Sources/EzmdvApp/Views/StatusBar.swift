@@ -62,6 +62,8 @@ struct StatusBar: View {
             } else {
                 Spacer()
             }
+
+            aboutButton
         }
         .font(.system(size: 10))
         .foregroundStyle(.tertiary)
@@ -70,5 +72,63 @@ struct StatusBar: View {
         .frame(height: 22)
         .background(.bar)
         .overlay(alignment: .top) { Divider() }
+        .onReceive(NotificationCenter.default.publisher(for: .showAbout)) { _ in
+            showAbout = true
+        }
+    }
+
+    @State private var showAbout = false
+
+    private var aboutButton: some View {
+        Button(action: { showAbout = true }) {
+            Image(systemName: "info.circle")
+                .font(.system(size: 10))
+                .foregroundStyle(.tertiary)
+        }
+        .buttonStyle(.plain)
+        .help("About ezmdv")
+        .sheet(isPresented: $showAbout) {
+            AboutView()
+        }
+    }
+}
+
+struct AboutView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(nsImage: NSApp.applicationIconImage)
+                .resizable()
+                .frame(width: 80, height: 80)
+
+            Text("ezmdv")
+                .font(.title.bold())
+
+            Text("Version 1.0.0")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            Text("A native macOS markdown viewer & editor")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            Divider()
+                .padding(.horizontal, 40)
+
+            VStack(spacing: 4) {
+                Text("by Bruno")
+                    .font(.caption)
+                Link("brunorv@hotmail.com", destination: URL(string: "mailto:brunorv@hotmail.com")!)
+                    .font(.caption)
+            }
+
+            Button("OK") { dismiss() }
+                .keyboardShortcut(.defaultAction)
+                .padding(.top, 8)
+        }
+        .padding(30)
+        .frame(width: 300)
     }
 }
