@@ -10,6 +10,8 @@ Package.resolved
 
 # App output
 dist/
+EzmdvApp.app/
+*.dmg
 
 # Node modules (editor bundle)
 resources/node_modules/
