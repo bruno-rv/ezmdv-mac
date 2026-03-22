@@ -1,13 +1,14 @@
 import Foundation
 
 enum SearchService {
-    static func search(query: String, in projects: [Project]) -> [SearchResult] {
+    static func search(query: String, in projects: [Project],
+                       contentFor: ((String) -> String?)? = nil) -> [SearchResult] {
         let lowerQuery = query.lowercased()
         var results: [SearchResult] = []
 
         for project in projects {
             guard let files = project.files else { continue }
-            searchFiles(files, query: lowerQuery, project: project, results: &results)
+            searchFiles(files, query: lowerQuery, project: project, contentFor: contentFor, results: &results)
         }
 
         // Sort by match quality: filename match first, then content matches
@@ -21,12 +22,12 @@ enum SearchService {
 
     private static func searchFiles(
         _ files: [MarkdownFile], query: String,
-        project: Project, results: inout [SearchResult]
+        project: Project, contentFor: ((String) -> String?)? = nil, results: inout [SearchResult]
     ) {
         for file in files {
             if file.isDirectory {
                 if let children = file.children {
-                    searchFiles(children, query: query, project: project, results: &results)
+                    searchFiles(children, query: query, project: project, contentFor: contentFor, results: &results)
                 }
                 continue
             }
@@ -36,7 +37,8 @@ enum SearchService {
             var preview: String? = nil
 
             // Search file content
-            if let content = try? String(contentsOfFile: file.path, encoding: .utf8) {
+            let fileContent = contentFor?(file.path) ?? (try? String(contentsOfFile: file.path, encoding: .utf8))
+            if let content = fileContent {
                 let lines = content.components(separatedBy: .newlines)
                 for line in lines {
                     if line.lowercased().contains(query) {

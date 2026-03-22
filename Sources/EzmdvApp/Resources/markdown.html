@@ -82,6 +82,145 @@ a.wiki-link {
 a.wiki-link:hover { border-bottom-style: solid; }
 a.wiki-link.unresolved { color: var(--fg-secondary); border-bottom-color: var(--fg-secondary); opacity: 0.7; }
 
+/* === Callout / Admonition blocks === */
+.callout {
+  border-radius: 8px; margin: 1em 0; overflow: hidden;
+  border: 1px solid; border-left-width: 4px;
+}
+.callout-title {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 14px; font-weight: 600; font-size: 0.88em; user-select: none;
+}
+.callout-foldable { cursor: pointer; }
+.callout-foldable:hover { opacity: 0.85; }
+.callout-fold-icon { margin-left: auto; font-size: 11px; transition: transform 0.2s; display: inline-block; }
+.callout.callout-collapsed .callout-fold-icon { transform: rotate(-90deg); }
+.callout.callout-collapsed .callout-body { display: none; }
+.callout-body { padding: 8px 14px 12px; }
+.callout-body > :first-child { margin-top: 0; }
+.callout-body > :last-child { margin-bottom: 0; }
+/* — type colors — */
+.callout-note, .callout-info {
+  border-color: #4a9eed; background: #eaf3fb;
+}
+.callout-note .callout-title, .callout-info .callout-title { background: #d0e8f8; color: #1a5f8c; }
+.callout-tip, .callout-success, .callout-check, .callout-done {
+  border-color: #4caf50; background: #eaf7ea;
+}
+.callout-tip .callout-title, .callout-success .callout-title, .callout-check .callout-title, .callout-done .callout-title { background: #d0f0d0; color: #2e7d32; }
+.callout-warning, .callout-caution, .callout-attention {
+  border-color: #ff9800; background: #fff8e1;
+}
+.callout-warning .callout-title, .callout-caution .callout-title, .callout-attention .callout-title { background: #ffe0b2; color: #bf6f00; }
+.callout-danger, .callout-error, .callout-bug, .callout-failure, .callout-fail, .callout-missing {
+  border-color: #f44336; background: #ffebee;
+}
+.callout-danger .callout-title, .callout-error .callout-title, .callout-bug .callout-title,
+.callout-failure .callout-title, .callout-fail .callout-title, .callout-missing .callout-title { background: #ffcdd2; color: #c62828; }
+.callout-question, .callout-help, .callout-faq {
+  border-color: #00bcd4; background: #e0f7fa;
+}
+.callout-question .callout-title, .callout-help .callout-title, .callout-faq .callout-title { background: #b2ebf2; color: #00838f; }
+.callout-quote, .callout-cite { border-color: #9e9e9e; background: #f5f5f5; }
+.callout-quote .callout-title, .callout-cite .callout-title { background: #e0e0e0; color: #616161; }
+.callout-example, .callout-abstract, .callout-summary, .callout-tldr {
+  border-color: #9c27b0; background: #f3e5f5;
+}
+.callout-example .callout-title, .callout-abstract .callout-title,
+.callout-summary .callout-title, .callout-tldr .callout-title { background: #e1bee7; color: #6a1b9a; }
+.callout-important { border-color: #e91e63; background: #fce4ec; }
+.callout-important .callout-title { background: #f8bbd0; color: #880e4f; }
+@media (prefers-color-scheme: dark) {
+  .callout-note, .callout-info { border-color: #4a9eed; background: #1a2733; }
+  .callout-note .callout-title, .callout-info .callout-title { background: #1e3448; color: #58a6ff; }
+  .callout-tip, .callout-success, .callout-check, .callout-done { border-color: #4caf50; background: #1a2a1a; }
+  .callout-tip .callout-title, .callout-success .callout-title, .callout-check .callout-title, .callout-done .callout-title { background: #1e3a1e; color: #66bb6a; }
+  .callout-warning, .callout-caution, .callout-attention { border-color: #ff9800; background: #2a2010; }
+  .callout-warning .callout-title, .callout-caution .callout-title, .callout-attention .callout-title { background: #3a2e10; color: #ffa726; }
+  .callout-danger, .callout-error, .callout-bug, .callout-failure, .callout-fail, .callout-missing { border-color: #f44336; background: #2a1a1a; }
+  .callout-danger .callout-title, .callout-error .callout-title, .callout-bug .callout-title,
+  .callout-failure .callout-title, .callout-fail .callout-title, .callout-missing .callout-title { background: #3a1a1a; color: #ef5350; }
+  .callout-question, .callout-help, .callout-faq { border-color: #00bcd4; background: #0a2a2e; }
+  .callout-question .callout-title, .callout-help .callout-title, .callout-faq .callout-title { background: #0e3a40; color: #26c6da; }
+  .callout-quote, .callout-cite { border-color: #9e9e9e; background: #1e1e1e; }
+  .callout-quote .callout-title, .callout-cite .callout-title { background: #2a2a2a; color: #9e9e9e; }
+  .callout-example, .callout-abstract, .callout-summary, .callout-tldr { border-color: #9c27b0; background: #1e0a2a; }
+  .callout-example .callout-title, .callout-abstract .callout-title,
+  .callout-summary .callout-title, .callout-tldr .callout-title { background: #2a1038; color: #ce93d8; }
+  .callout-important { border-color: #e91e63; background: #2a0a1a; }
+  .callout-important .callout-title { background: #3a1028; color: #f48fb1; }
+}
+
+/* === Footnotes === */
+.footnotes { font-size: 0.85em; color: var(--fg-secondary); margin-top: 2em; }
+.footnotes ol { padding-left: 1.5em; }
+.footnotes li { margin: 0.3em 0; }
+a.footnote-ref { font-size: 0.8em; text-decoration: none; color: var(--link); vertical-align: super; line-height: 0; }
+a.footnote-ref:hover { text-decoration: underline; }
+a.footnote-back { text-decoration: none; color: var(--link); margin-left: 4px; }
+a.footnote-back:hover { text-decoration: underline; }
+hr.footnotes-sep { margin: 2em 0 1em; opacity: 0.3; }
+
+/* === Note Transclusion === */
+.transcluded-note {
+  border: 1px solid var(--border); border-left: 3px solid var(--link);
+  border-radius: 0 6px 6px 0; padding: 8px 16px; margin: 1em 0;
+  background: var(--code-bg); position: relative;
+}
+.transcluded-note::before {
+  content: '↗'; position: absolute; top: 6px; right: 10px;
+  opacity: 0.35; font-size: 12px; pointer-events: none;
+}
+.transcluded-note > :first-child { margin-top: 0; }
+.transcluded-note > :last-child { margin-bottom: 0; }
+.transcluded-missing {
+  border-left-color: #f44336; color: var(--fg-secondary); font-size: 0.88em; font-style: italic;
+}
+
+/* === Presentation mode slide content === */
+.slide-content.markdown-body {
+  max-width: 820px; width: 90%; font-size: 1.5em; line-height: 1.5;
+  padding: 20px 40px; color: #e6edf3;
+}
+.slide-content.markdown-body h1 { font-size: 1.8em; border-color: rgba(255,255,255,0.15); }
+.slide-content.markdown-body h2 { font-size: 1.4em; border-color: rgba(255,255,255,0.15); }
+.slide-content.markdown-body a { color: #79c0ff; }
+.slide-content.markdown-body code, .slide-content.markdown-body pre { font-size: 0.75em; }
+#slide-body {
+    opacity: 1;
+    transition: opacity 0.15s ease;
+}
+#slide-body.slide-fading {
+    opacity: 0;
+}
+
+/* === Find highlights === */
+mark.find-highlight {
+  background: #ffe066;
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+mark.find-highlight.find-current {
+  background: #ff8c00;
+  outline: 2px solid #ff8c00;
+  border-radius: 2px;
+}
+@media (prefers-color-scheme: dark) {
+  mark.find-highlight { background: #7a6000; color: #ffe066; }
+  mark.find-highlight.find-current { background: #b87800; outline-color: #ffb300; color: #fff; }
+}
+
+/* === Print === */
+@media print {
+  body { overflow: visible !important; }
+  #view-container { display: block !important; height: auto !important; overflow: visible !important; }
+  #edit-container, #preview-container { display: none !important; }
+  .markdown-body { max-width: 100% !important; padding: 0 !important; }
+  a.wiki-link { border-bottom: none !important; }
+  a.wiki-link.unresolved { opacity: 1 !important; }
+}
+
 /* === Layout containers === */
 #view-container { display: none; height: 100%; overflow-y: auto; }
 #view-container.active { display: block; }
@@ -156,6 +295,76 @@ function setProjectFiles(files) {
   if (window._updateEditorFiles) window._updateEditorFiles(files);
 }
 
+// --- Callout icon map ---
+function calloutIcon(type) {
+  const icons = {
+    note: '✏️', info: 'ℹ️', tip: '💡', warning: '⚠️', caution: '⚠️', attention: '⚠️',
+    danger: '🔥', error: '❌', bug: '🐛', failure: '❌', fail: '❌', missing: '❌',
+    success: '✅', check: '✅', done: '✅', question: '❓', help: '❓', faq: '❓',
+    quote: '💬', cite: '💬', example: '📋', abstract: '📄', summary: '📄', tldr: '📄',
+    important: '❗',
+  };
+  return icons[type] || '📌';
+}
+
+// --- Callout preprocessor (Obsidian-style > [!type] blocks) ---
+function preprocessCallouts(md) {
+  return md.replace(
+    /^> \[!(\w+)\]([+-]?) ?(.*)\n((?:> [^\n]*\n?)*)/gm,
+    (match, type, foldable, title, body) => {
+      const t = type.toLowerCase();
+      const titleText = title.trim() || (t.charAt(0).toUpperCase() + t.slice(1));
+      const bodyMd = body.replace(/^> ?/gm, '').trim();
+      const bodyHtml = bodyMd ? marked.parse(bodyMd) : '';
+      const isFoldable = foldable !== '';
+      const isCollapsed = foldable === '-';
+      const foldAttr = isFoldable
+        ? ' onclick="this.parentElement.classList.toggle(\'callout-collapsed\')"'
+        : '';
+      return (
+        `<div class="callout callout-${t}${isCollapsed ? ' callout-collapsed' : ''}">\n` +
+        `<div class="callout-title${isFoldable ? ' callout-foldable' : ''}"${foldAttr}>` +
+        `<span>${calloutIcon(t)}</span>` +
+        `<span>${titleText}</span>` +
+        (isFoldable ? `<span class="callout-fold-icon">▾</span>` : '') +
+        `</div>\n` +
+        `<div class="callout-body">${bodyHtml}</div>` +
+        `</div>\n\n`
+      );
+    }
+  );
+}
+
+// --- Footnote preprocessor ([^ref] inline + [^ref]: definition) ---
+function processFootnotes(md) {
+  const defs = {};
+  // Collect single-line definitions and remove them from text
+  let cleaned = md.replace(/^\[\^([^\]]+)\]:[ \t]+(.+)$/gm, (_, label, text) => {
+    defs[label] = text.trim();
+    return '';
+  });
+  if (Object.keys(defs).length === 0) return md;
+
+  const refOrder = [];
+  // Replace inline references with superscript links
+  cleaned = cleaned.replace(/\[\^([^\]]+)\]/g, (_, label) => {
+    if (!refOrder.includes(label)) refOrder.push(label);
+    const n = refOrder.indexOf(label) + 1;
+    return `<sup><a href="#fn-${label}" id="fnref-${label}" class="footnote-ref">${n}</a></sup>`;
+  });
+
+  // Append footnote section at the end
+  if (refOrder.length > 0) {
+    const items = refOrder.map((label) => {
+      const text = defs[label] || label;
+      return `<li id="fn-${label}">${text} <a href="#fnref-${label}" class="footnote-back">↩</a></li>`;
+    }).join('\n');
+    cleaned = cleaned.trimEnd() +
+      `\n\n<hr class="footnotes-sep">\n<section class="footnotes">\n<ol>\n${items}\n</ol>\n</section>\n`;
+  }
+  return cleaned;
+}
+
 // --- Configure marked (with safety check) ---
 if (typeof marked !== 'undefined') {
   marked.setOptions({ gfm: true, breaks: false });
@@ -180,12 +389,32 @@ if (typeof mermaid !== 'undefined') {
   });
 }
 
+// --- Note Transclusion ---
+let _transclusionCache = {};
+function setTransclusions(dict) { _transclusionCache = dict; }
+
+function preprocessTransclusions(md) {
+  return md.replace(/!\[\[([^\[\]]+)\]\]/g, (match, target) => {
+    const raw = target.split('|')[0].split('#')[0].trim();
+    const key = raw.toLowerCase().replace(/\.md$/, '');
+    const content = _transclusionCache[key];
+    if (content === undefined) {
+      return `<div class="transcluded-note transcluded-missing">⚠ Note not found: ${raw}</div>`;
+    }
+    const rendered = (typeof marked !== 'undefined') ? marked.parse(content) : content;
+    return `<div class="transcluded-note">${rendered}</div>`;
+  });
+}
+
 // --- Render markdown to an element ---
 async function renderMarkdownToEl(md, el) {
   try {
     if (typeof marked !== 'undefined') {
-      // Transform wiki-links before marked processes the markdown
-      const transformed = transformWikiLinks(md);
+      // Preprocess: transclusions → footnotes → callouts → wiki-links, then parse
+      const withTransclusions = preprocessTransclusions(md);
+      const withFootnotes = processFootnotes(withTransclusions);
+      const withCallouts = preprocessCallouts(withFootnotes);
+      const transformed = transformWikiLinks(withCallouts);
       el.innerHTML = marked.parse(transformed);
     } else {
       // Fallback: show raw text if marked.js failed to load
@@ -470,6 +699,264 @@ const autoScroll = {
 function toggleAutoScroll() { autoScroll.toggle(); return autoScroll.active; }
 function stopAutoScroll() { autoScroll.stop(); }
 function setAutoScrollConfig(interval, percent) { autoScroll.setConfig(interval, percent); }
+
+// --- Presentation mode ---
+const presentation = {
+  active: false,
+  slides: [],
+  currentSlide: 0,
+  container: null,
+  _keyHandler: null,
+
+  async enter(md) {
+    if (this.active) return;
+    this.slides = md.split(/\n---+\n/);
+    this.currentSlide = 0;
+    this.active = true;
+
+    this.container = document.createElement('div');
+    this.container.id = 'presentation-overlay';
+    Object.assign(this.container.style, {
+      position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
+      zIndex: '9999', background: '#0d1117', color: '#e6edf3',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      overflow: 'hidden',
+    });
+    document.body.appendChild(this.container);
+    this._bindKeys();
+    await this._render(true);
+
+    if (window.webkit?.messageHandlers?.presentationHandler) {
+      window.webkit.messageHandlers.presentationHandler.postMessage({ active: true });
+    }
+  },
+
+  exit() {
+    if (!this.active) return;
+    this.active = false;
+    this._unbindKeys();
+    this.container?.remove();
+    this.container = null;
+    if (window.webkit?.messageHandlers?.presentationHandler) {
+      window.webkit.messageHandlers.presentationHandler.postMessage({ active: false });
+    }
+  },
+
+  async _render(firstRender = false) {
+    if (!this.container) return;
+    const total = this.slides.length;
+    const md = this.slides[this.currentSlide] || '';
+
+    if (firstRender || !document.getElementById('slide-body')) {
+      // First render: build the container skeleton
+      this.container.innerHTML =
+        `<article id="slide-body" class="slide-content markdown-body"></article>` +
+        `<div id="slide-counter" style="position:absolute;bottom:18px;right:24px;font-size:12px;opacity:0.45">${this.currentSlide + 1} / ${total}</div>` +
+        `<div style="position:absolute;bottom:18px;left:24px;font-size:11px;opacity:0.3">← → navigate &nbsp;·&nbsp; Esc exit</div>`;
+      await renderMarkdownToEl(md, document.getElementById('slide-body'));
+    } else {
+      // Subsequent renders: fade out → update → fade in
+      const body = document.getElementById('slide-body');
+      const counter = document.getElementById('slide-counter');
+      body.classList.add('slide-fading');
+      await new Promise(r => setTimeout(r, 120));
+      await renderMarkdownToEl(md, body);
+      if (counter) counter.textContent = `${this.currentSlide + 1} / ${total}`;
+      body.classList.remove('slide-fading');
+    }
+  },
+
+  next()  { if (this.currentSlide < this.slides.length - 1) { this.currentSlide++; this._render(); } },
+  prev()  { if (this.currentSlide > 0)                      { this.currentSlide--; this._render(); } },
+
+  _bindKeys() {
+    this._keyHandler = (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); this.next(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp')                { e.preventDefault(); this.prev(); }
+      else if (e.key === 'Escape')                                           { this.exit(); }
+    };
+    document.addEventListener('keydown', this._keyHandler);
+  },
+
+  _unbindKeys() {
+    if (this._keyHandler) { document.removeEventListener('keydown', this._keyHandler); this._keyHandler = null; }
+  },
+};
+
+function enterPresentation() { presentation.enter(rawMarkdown); }
+function exitPresentation()  { presentation.exit(); }
+
+// --- Find in View mode ---
+let _findMatches = [];   // Array of <mark> DOM elements
+let _findIndex = -1;     // Current match index (0-based)
+
+function clearFindHighlights() {
+  document.querySelectorAll('mark.find-highlight').forEach(mark => {
+    const parent = mark.parentNode;
+    parent.replaceChild(document.createTextNode(mark.textContent), mark);
+    parent.normalize();
+  });
+  _findMatches = [];
+  _findIndex = -1;
+}
+
+function _postFindCount(current, total) {
+  if (window.webkit?.messageHandlers?.findHandler) {
+    window.webkit.messageHandlers.findHandler.postMessage({ current: current, total: total });
+  }
+}
+
+function _textNodes(el) {
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const tag = node.parentElement?.tagName?.toUpperCase();
+      if (tag === 'SCRIPT' || tag === 'STYLE') return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  const nodes = [];
+  let n;
+  while ((n = walker.nextNode())) nodes.push(n);
+  return nodes;
+}
+
+function findInView(query, direction) {
+  clearFindHighlights();
+  if (!query) { _postFindCount(0, -1); return; }
+
+  const container = document.getElementById('content');
+  if (!container) return;
+
+  const textNodes = _textNodes(container);
+  const lowerQuery = query.toLowerCase();
+
+  textNodes.forEach(node => {
+    const text = node.textContent;
+    const lower = text.toLowerCase();
+    let idx = 0;
+    const parts = [];
+    let match;
+    while ((match = lower.indexOf(lowerQuery, idx)) !== -1) {
+      if (match > idx) parts.push(document.createTextNode(text.slice(idx, match)));
+      const mark = document.createElement('mark');
+      mark.className = 'find-highlight';
+      mark.textContent = text.slice(match, match + query.length);
+      parts.push(mark);
+      _findMatches.push(mark);
+      idx = match + query.length;
+    }
+    if (parts.length > 0) {
+      if (idx < text.length) parts.push(document.createTextNode(text.slice(idx)));
+      const frag = document.createDocumentFragment();
+      parts.forEach(p => frag.appendChild(p));
+      node.parentNode.replaceChild(frag, node);
+    }
+  });
+
+  const total = _findMatches.length;
+  if (total === 0) { _postFindCount(0, 0); return; }
+
+  _findIndex = direction >= 0 ? 0 : total - 1;
+  _activateFindMatch();
+  _postFindCount(_findIndex + 1, total);
+}
+
+function findNextInView() {
+  if (_findMatches.length === 0) return;
+  _findIndex = (_findIndex + 1) % _findMatches.length;
+  _activateFindMatch();
+  _postFindCount(_findIndex + 1, _findMatches.length);
+}
+
+function findPrevInView() {
+  if (_findMatches.length === 0) return;
+  _findIndex = (_findIndex - 1 + _findMatches.length) % _findMatches.length;
+  _activateFindMatch();
+  _postFindCount(_findIndex + 1, _findMatches.length);
+}
+
+function _activateFindMatch() {
+  _findMatches.forEach((m, i) => {
+    m.classList.toggle('find-current', i === _findIndex);
+  });
+  const current = _findMatches[_findIndex];
+  if (current) current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+// --- Find in Edit mode (CodeMirror) ---
+let _editorFindMatches = [];
+let _editorFindIndex = -1;
+let _editorFindQuery = '';
+
+function editorFindOpen(query, direction) {
+  if (!editorManager || !editorManager.editor) { _postFindCount(0, 0); return; }
+  const content = editorManager.getContent();
+  if (!content || !query) { _postFindCount(0, 0); return; }
+  const lowerContent = content.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  _editorFindMatches = [];
+  _editorFindQuery = query;
+  let idx = 0;
+  let match;
+  while ((match = lowerContent.indexOf(lowerQuery, idx)) !== -1) {
+    _editorFindMatches.push(match);
+    idx = match + lowerQuery.length;
+  }
+  if (_editorFindMatches.length === 0) { _postFindCount(0, 0); return; }
+  _editorFindIndex = direction >= 0 ? 0 : _editorFindMatches.length - 1;
+  _editorActivateMatch();
+  _postFindCount(_editorFindIndex + 1, _editorFindMatches.length);
+}
+
+function _editorActivateMatch() {
+  if (!editorManager || !editorManager.editor) return;
+  const pos = _editorFindMatches[_editorFindIndex];
+  if (pos === undefined) return;
+  const view = editorManager.editor;
+  view.dispatch({
+    selection: { anchor: pos, head: pos + _editorFindQuery.length },
+    scrollIntoView: true
+  });
+  view.focus();
+}
+
+function editorFindNext() {
+  if (_editorFindMatches.length === 0) return;
+  _editorFindIndex = (_editorFindIndex + 1) % _editorFindMatches.length;
+  _editorActivateMatch();
+  _postFindCount(_editorFindIndex + 1, _editorFindMatches.length);
+}
+
+function editorFindPrev() {
+  if (_editorFindMatches.length === 0) return;
+  _editorFindIndex = (_editorFindIndex - 1 + _editorFindMatches.length) % _editorFindMatches.length;
+  _editorActivateMatch();
+  _postFindCount(_editorFindIndex + 1, _editorFindMatches.length);
+}
+
+function editorCloseSearch() {
+  _editorFindMatches = [];
+  _editorFindIndex = -1;
+  _editorFindQuery = '';
+}
+
+function editorReplaceCurrentMatch(replacement) {
+  if (!editorManager || !editorManager.editor || _editorFindMatches.length === 0) return;
+  const pos = _editorFindMatches[_editorFindIndex];
+  const view = editorManager.editor;
+  view.dispatch({
+    changes: { from: pos, to: pos + _editorFindQuery.length, insert: replacement }
+  });
+  editorFindOpen(_editorFindQuery, 1);
+}
+
+function editorReplaceAllMatches(query, replacement) {
+  if (!editorManager || !editorManager.editor) return;
+  const content = editorManager.getContent();
+  const newContent = content.split(query).join(replacement);
+  editorManager.setContent(newContent);
+  _postFindCount(0, 0);
+}
 
 // --- Signal ready to Swift ---
 window.addEventListener('load', function() {

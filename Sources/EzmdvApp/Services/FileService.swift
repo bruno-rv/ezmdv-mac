@@ -80,6 +80,16 @@ enum FileService {
         }
     }
 
+    /// Moves a file to a different folder, keeping the same filename.
+    /// Returns the new file path.
+    @discardableResult
+    static func move(from sourcePath: String, toFolder folderPath: String) throws -> String {
+        let fileName = (sourcePath as NSString).lastPathComponent
+        let destPath = (folderPath as NSString).appendingPathComponent(fileName)
+        try rename(from: sourcePath, to: destPath)
+        return destPath
+    }
+
     // MARK: - Helpers
 
     static func isDirectory(_ path: String) -> Bool {

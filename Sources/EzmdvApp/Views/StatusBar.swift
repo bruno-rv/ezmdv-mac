@@ -14,19 +14,23 @@ struct StatusBar: View {
         return appState.contentCache[path] ?? ""
     }
 
-    private var wordCount: Int {
-        let words = content.split { $0.isWhitespace || $0.isNewline }
-        return words.count
-    }
-
-    private var lineCount: Int {
-        guard !content.isEmpty else { return 0 }
-        return content.components(separatedBy: "\n").count
+    private var stats: (words: Int, lines: Int) {
+        guard !content.isEmpty else { return (0, 0) }
+        var words = 0, lines = 1, inWord = false
+        for c in content.unicodeScalars {
+            if c == "\n" { lines += 1 }
+            if c.properties.isWhitespace {
+                inWord = false
+            } else if !inWord {
+                inWord = true
+                words += 1
+            }
+        }
+        return (words, lines)
     }
 
     private var readTime: String {
-        let minutes = max(1, wordCount / 200)
-        return "\(minutes) min read"
+        "\(max(1, stats.words / 200)) min read"
     }
 
     private var isDirty: Bool {
@@ -56,8 +60,8 @@ struct StatusBar: View {
 
                 Spacer()
 
-                Text("\(wordCount) words")
-                Text("\(lineCount) lines")
+                Text("\(stats.words) words")
+                Text("\(stats.lines) lines")
                 Text(readTime)
             } else {
                 Spacer()

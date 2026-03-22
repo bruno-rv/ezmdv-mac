@@ -20,7 +20,18 @@ extension AppState {
             focusedPane = .primary
         }
 
+        // Track in MRU recent files list
+        recentFilePaths.removeAll { $0 == filePath }
+        recentFilePaths.insert(filePath, at: 0)
+        if recentFilePaths.count > 20 { recentFilePaths = Array(recentFilePaths.prefix(20)) }
+
         loadContent(for: filePath)
+        saveState()
+    }
+
+    func setPinned(_ tab: FileTab, pinned: Bool) {
+        guard let idx = tabs.firstIndex(of: tab) else { return }
+        tabs[idx].isPinned = pinned
         saveState()
     }
 
@@ -75,14 +86,14 @@ extension AppState {
     func updateTabsForRename(oldPath: String, newPath: String) {
         for i in tabs.indices {
             if tabs[i].filePath == oldPath {
-                let newTab = FileTab(projectId: tabs[i].projectId, filePath: newPath)
+                let newTab = FileTab(projectId: tabs[i].projectId, filePath: newPath, isPinned: tabs[i].isPinned)
                 if primaryTab == tabs[i] { primaryTab = newTab }
                 if secondaryTab == tabs[i] { secondaryTab = newTab }
                 tabs[i] = newTab
             } else if tabs[i].filePath.hasPrefix(oldPath + "/") {
                 let suffix = String(tabs[i].filePath.dropFirst(oldPath.count))
                 let updated = newPath + suffix
-                let newTab = FileTab(projectId: tabs[i].projectId, filePath: updated)
+                let newTab = FileTab(projectId: tabs[i].projectId, filePath: updated, isPinned: tabs[i].isPinned)
                 if primaryTab == tabs[i] { primaryTab = newTab }
                 if secondaryTab == tabs[i] { secondaryTab = newTab }
                 tabs[i] = newTab
