@@ -23,7 +23,7 @@
 - **Markdown rendering** with syntax highlighting (highlight.js), math (KaTeX), diagrams (Mermaid), and GFM support
 - **CodeMirror 6 editor** with syntax highlighting, line numbers, and markdown-specific features
 - **Live preview** — side-by-side editor + rendered output
-- **Slash commands** in editor: `/h1`, `/code`, `/table`, `/task`, and more
+- **Slash commands** in editor: `/h1`, `/code`, `/table`, `/task`, and more — accept with Enter or Tab
 - **Auto-save** with dirty file indicator (3s debounce)
 - **Auto-scroll (teleprompter mode)** — hands-free reading with adjustable speed
 - **Export to HTML** — standalone file with all styling baked in (⌘⇧E)

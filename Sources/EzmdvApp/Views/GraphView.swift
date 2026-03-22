@@ -96,9 +96,9 @@ struct GraphView: View {
                 .frame(minHeight: 350)
             }
         }
-        .background(.bar)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .shadow(color: .black.opacity(0.2), radius: 8, y: 2)
+        .background(isMinimized ? AnyShapeStyle(.bar) : AnyShapeStyle(Color(NSColor.windowBackgroundColor)))
+        .clipShape(RoundedRectangle(cornerRadius: isMinimized ? 8 : 0))
+        .shadow(color: .black.opacity(isMinimized ? 0.2 : 0), radius: isMinimized ? 8 : 0, y: isMinimized ? 2 : 0)
     }
 
     private func buildGraphData() -> GraphData {

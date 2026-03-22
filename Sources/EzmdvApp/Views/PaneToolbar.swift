@@ -14,7 +14,6 @@ struct PaneToolbar: View {
     @Binding var autoScrollActive: Bool
     @Binding var autoScrollInterval: Double
     @Binding var autoScrollPercent: Double
-    let onRefresh: () -> Void
     let onSave: () -> Void
     let onAutoScrollToggle: () -> Void
 

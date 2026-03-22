@@ -55,9 +55,6 @@ struct MarkdownPaneView: View {
                 autoScrollActive: $autoScrollActive,
                 autoScrollInterval: $autoScrollInterval,
                 autoScrollPercent: $autoScrollPercent,
-                onRefresh: {
-                    appState.refreshContent(for: tab.filePath)
-                },
                 onSave: {
                     appState.saveFile(tab.filePath)
                 },
